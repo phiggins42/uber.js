@@ -1,0 +1,3 @@
+[submodule "has.js"]
+	path = has.js
+	url = git://github.com/phiggins42/has.js.git
