@@ -1,0 +1,59 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tests</title>
+    <style>
+        
+    </style>
+    <script src="../has.js/has.js"></script>
+    <script src="../has.js/detect/array.js"></script>
+    <script src="../uber.js"></script>
+    <script src="../src/array.js"></script>
+</head>
+<body>
+    <script>
+        var ist = (function(){
+            var toString = {}.toString,
+                func = "[object Function]",
+                arr = "[object Array]";
+            function ist(a, b){
+                var ta = typeof a,
+                    tb = typeof b;
+                if(ta != tb){
+                    return false;
+                }
+                var sa = toString.call(a),
+                    sb = toString.call(b);
+                if(sa != sb){
+                    return false;
+                }
+                if(sa == arr){
+                    if(a.length != b.length){
+                        return false;
+                    }
+                    for(var i=a.length; i--;){
+                        if(!ist(a[i], b[i])){
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                return a === b;
+            }
+            return ist;
+        })();
+
+        console.log("indexOf: " + ist(uber.indexOf([1,2,2,3], 2), 1));
+        console.log("lastIndexOf: " + ist(uber.lastIndexOf([1,2,2,3], 2), 2));
+        console.log("every: " + ist(uber.every([1,1,1,1], function(a){ return a == 1; }), true));
+        console.log("every, again: " + ist(uber.every([1,2,1,1], function(a){ return a == 1; }), false));
+        console.log("every: " + ist(uber.some([1,2,3,4], function(a){ return a == 4; }), true));
+        console.log("some, again: " + ist(uber.some([1,2,3,4], function(a){ return a == 5; }), false));
+        console.log("map: " + ist(uber.map([1,2,3,4], function(a){ return a + 1; }), [2,3,4,5]));
+        console.log("filter: " + ist(uber.filter([1,2,3,4], function(a){ return a < 4; }), [1,2,3]));
+        console.log("reduce: " + ist(uber.reduce([1,2,3,4], function(a, b){ return a + b; }), 10));
+        console.log("reduceRight: " + ist(uber.reduceRight([1,2,3,4], function(a, b){ return a + b; }), 10));
+    </script>
+</body>
+</html>
