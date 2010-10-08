@@ -8,8 +8,11 @@
     </style>
     <script src="../has.js/has.js"></script>
     <script src="../has.js/detect/array.js"></script>
+    <script src="../has.js/detect/strings.js"></script>
+    <script src="../has.js/detect/bugs.js"></script>
     <script src="../uber.js"></script>
     <script src="../src/array.js"></script>
+    <script src="../src/string.js"></script>
 </head>
 <body>
     <script>
@@ -54,6 +57,7 @@
         console.log("filter: " + ist(uber.filter([1,2,3,4], function(a){ return a < 4; }), [1,2,3]));
         console.log("reduce: " + ist(uber.reduce([1,2,3,4], function(a, b){ return a + b; }), 10));
         console.log("reduceRight: " + ist(uber.reduceRight([1,2,3,4], function(a, b){ return a + b; }), 10));
+        console.log("trim: " + ist(uber.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029"), 'asdf'));
     </script>
 </body>
 </html>
