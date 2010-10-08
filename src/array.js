@@ -1,11 +1,7 @@
-(function(uber){
+(function(uber, has){
     uber.indexOf = has("array-indexof") ?
         function(arr, searchElement, fromIndex){
-            if(arguments.length > 2){
-                return arr.indexOf(searchElement, fromIndex);
-            }else{
-                return arr.indexOf(searchElement);
-            }
+            return arr.indexOf(searchElement, fromIndex);
         } :
         function(arr, searchElement, fromIndex){
             var result = -1,
@@ -39,6 +35,8 @@
             if(arguments.length > 2){
                 return arr.lastIndexOf(searchElement, fromIndex);
             }else{
+                // if undefined is passed as the second argument,
+                // it starts searching from 0.
                 return arr.lastIndexOf(searchElement);
             }
         } :
@@ -69,11 +67,7 @@
 
     uber.every = has("array-every") ?
         function(arr, callback, thisArg){
-            if(arguments.length > 2){
-                return arr.every(callback, thisArg);
-            }else{
-                return arr.every(callback);
-            }
+            return arr.every(callback, thisArg);
         } :
         function(arr, callback, thisArg){
             for(var i=0, l=arr.length; i<l; i++){
@@ -86,11 +80,7 @@
 
     uber.some = has("array-some") ?
         function(arr, callback, thisArg){
-            if(arguments.length > 2){
-                return arr.some(callback, thisArg);
-            }else{
-                return arr.some(callback);
-            }
+            return arr.some(callback, thisArg);
         } :
         function(arr, callback, thisArg){
             for(var i=0, l=arr.length; i<l; i++){
@@ -103,11 +93,7 @@
 
     uber.forEach = has("array-foreach") ? 
         function(arr, callback, thisArg){
-            if(arguments.length > 2){
-                return arr.forEach(callback, thisArg);
-            }else{
-                return arr.forEach(callback);
-            }
+            return arr.forEach(callback, thisArg);
         } :
         function(arr, callback, thisArg){
             for(var i=0, l=arr.length; i<l; i++){
@@ -119,11 +105,7 @@
     
     uber.map = has("array-map") ?
         function(arr, callback, thisArg){
-            if(arguments.length > 2){
-                return arr.map(callback, thisArg);
-            }else{
-                return arr.map(callback);
-            }
+            return arr.map(callback, thisArg);
         } :
         function(arr, callback, thisArg){
             var l = arr.length,
@@ -138,11 +120,7 @@
     
     uber.filter = has("array-filter") ?
         function(arr, callback, thisArg){
-            if(arguments.length > 2){
-                return arr.filter(callback, thisArg);
-            }else{
-                return arr.filter(callback);
-            }
+            return arr.filter(callback, thisArg);
         } :
         function(arr, callback, thisArg){
             var result = [],
@@ -235,4 +213,4 @@
             }
             return acc;
         };
-})(uber);
+})(uber, has);
