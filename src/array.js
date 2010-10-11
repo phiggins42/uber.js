@@ -1,4 +1,22 @@
 (function(uber, has){
+
+    var aslice = [].slice;
+    function toArray(arrLike, offset, startWith){
+        return (startWith||[]).concat(aslice.call(arrLike, offset||0));
+    }
+    uber.toArray = has("array-slice-nodelist") ?
+        toArray :
+        function(arrLike, offset, startWith){
+            if(arrLike.item){
+                var arr = startWith||[];
+                for(var x = offset || 0; x < arrLike.length; x++){
+                    arr.push(obj[x]);
+                }
+                return arr;
+            }
+            return toArray(arrLike, offset, startWith);
+        };
+
     uber.indexOf = has("array-indexof") ?
         function(arr, searchElement, fromIndex){
             return arr.indexOf(searchElement, fromIndex);
