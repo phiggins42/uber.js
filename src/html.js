@@ -46,10 +46,10 @@
 
     function idWrapper(func){
         return function(id){
-            if(typeof id != STR){
-                return id;
+            if(typeof id == STR){
+                return id = byId(id);
             }
-            return func.apply(this, uber.toArray(arguments, 1, [byId(id)]));
+            return func.apply(this, uber.toArray(arguments, 1, [id]));
         }
     }
 
@@ -109,8 +109,9 @@
     })();
 
     uber.setOpacity = (function(){
+        var opacityProp;
         function setOpacity(node, value){
-            return node.style.opacity = opacity;
+            return node.style[opacityProp] = value;
         }
         function setOpacityFilter(node, value){
             var ov = opacity * 100, opaque = opacity == 1;
@@ -138,6 +139,7 @@
             return opacity;
         }
         if(has("css-opacity")){
+            opacityProp = getStyleProperty("opacity");
             return idWrapper(setOpacity);
         }else if(has("css-opacity-filter")){
             return idWrapper(setOpacity);
