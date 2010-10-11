@@ -89,7 +89,7 @@
         function setSelectableDOM(node, selectable){
             var v = (node.unselectable = selectable ? "" : "on");
             // TODO: figure this out
-			//d.query("*", node).forEach("item.unselectable = '"+v+"'");
+            //d.query("*", node).forEach("item.unselectable = '"+v+"'");
         }
 
         var selectableProperty, trueValue = "";
@@ -110,32 +110,32 @@
 
     uber.setOpacity = (function(){
         function setOpacity(node, value){
-			return node.style.opacity = opacity;
+            return node.style.opacity = opacity;
         }
         function setOpacityFilter(node, value){
-			var ov = opacity * 100, opaque = opacity == 1;
-			node.style.zoom = opaque ? "" : 1;
+            var ov = opacity * 100, opaque = opacity == 1;
+            node.style.zoom = opaque ? "" : 1;
 
-			if(!af(node)){
-				if(opaque){
-					return opacity;
-				}
-				node.style.filter += " progid:" + astr + "(Opacity=" + ov + ")";
-			}else{
-				af(node, 1).Opacity = ov;
-			}
+            if(!af(node)){
+                if(opaque){
+                    return opacity;
+                }
+                node.style.filter += " progid:" + astr + "(Opacity=" + ov + ")";
+            }else{
+                af(node, 1).Opacity = ov;
+            }
 
-			// on IE7 Alpha(Filter opacity=100) makes text look fuzzy so disable it altogether (Dojo bug #2661),
-			//but still update the opacity value so we can get a correct reading if it is read later.
-			af(node, 1).Enabled = !opaque;
+            // on IE7 Alpha(Filter opacity=100) makes text look fuzzy so disable it altogether (Dojo bug #2661),
+            //but still update the opacity value so we can get a correct reading if it is read later.
+            af(node, 1).Enabled = !opaque;
 
             // TODO: figure out how to do this
-			/*if(node.nodeName.toLowerCase() == "tr"){
-				d.query("> td", node).forEach(function(i){
-					setOpacityFilter(i, opacity);
-				});
+            /*if(node.nodeName.toLowerCase() == "tr"){
+                d.query("> td", node).forEach(function(i){
+                    setOpacityFilter(i, opacity);
+                });
             }*/
-			return opacity;
+            return opacity;
         }
         if(has("css-opacity")){
             return idWrapper(setOpacity);
