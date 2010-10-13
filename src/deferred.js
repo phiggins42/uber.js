@@ -2,16 +2,7 @@
 
     var FN = "function";
 
-    var freeze = (function(){
-        if(has("object-freeze")){
-            freeze = function freeze(obj){
-                Object.freeze(obj);
-            };
-        }else{
-            freeze = function freeze(){};
-        }
-        return freeze;
-    })();
+    var freeze = Object.freeze || function(){};
 
     function Deferred(canceller){
         this.fired = -1;
