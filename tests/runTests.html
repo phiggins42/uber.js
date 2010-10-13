@@ -10,11 +10,24 @@
     <script src="../has.js/detect/array.js"></script>
     <script src="../has.js/detect/strings.js"></script>
     <script src="../has.js/detect/bugs.js"></script>
+    <script src="../has.js/detect/dom.js"></script>
+    <script src="../has.js/detect/css.js"></script>
+    <script src="../has.js/detect/function.js"></script>
+    <script src="../has.js/detect/object.js"></script>
     <script src="../uber.js"></script>
     <script src="../src/array.js"></script>
+    <script src="../src/function.js"></script>
+    <script src="../src/object.js"></script>
     <script src="../src/string.js"></script>
+    <script src="../src/html.js"></script>
+    <script src="../src/promise.js"></script>
+    <script src="../src/deferred.js"></script>
 </head>
 <body>
+    <ul id="output">
+    </ul>
+    <div id="TestElement"></div>
+    <div id="testelement"></div>
     <script>
         var ist = (function(){
             var toString = {}.toString,
@@ -47,17 +60,147 @@
             return ist;
         })();
 
-        console.log("indexOf: " + ist(uber.indexOf([1,2,2,3], 2), 1));
-        console.log("lastIndexOf: " + ist(uber.lastIndexOf([1,2,2,3], 2), 2));
-        console.log("every: " + ist(uber.every([1,1,1,1], function(a){ return a == 1; }), true));
-        console.log("every, again: " + ist(uber.every([1,2,1,1], function(a){ return a == 1; }), false));
-        console.log("every: " + ist(uber.some([1,2,3,4], function(a){ return a == 4; }), true));
-        console.log("some, again: " + ist(uber.some([1,2,3,4], function(a){ return a == 5; }), false));
-        console.log("map: " + ist(uber.map([1,2,3,4], function(a){ return a + 1; }), [2,3,4,5]));
-        console.log("filter: " + ist(uber.filter([1,2,3,4], function(a){ return a < 4; }), [1,2,3]));
-        console.log("reduce: " + ist(uber.reduce([1,2,3,4], function(a, b){ return a + b; }), 10));
-        console.log("reduceRight: " + ist(uber.reduceRight([1,2,3,4], function(a, b){ return a + b; }), 10));
-        console.log("trim: " + ist(uber.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029"), 'asdf'));
+        var empty = {};
+	var _mixin = function(/*Object*/ target, /*Object*/ source){
+		// summary:
+		//		Adds all properties and methods of source to target. This addition
+		//		is "prototype extension safe", so that instances of objects
+		//		will not pass along prototype defaults.
+		var name, s, i;
+		for(name in source){
+			// the "tobj" condition avoid copying properties in "source"
+			// inherited from Object.prototype.  For example, if target has a custom
+			// toString() method, don't overwrite it with the toString() method
+			// that source inherited from Object.prototype
+			s = source[name];
+			if(!(name in target) || (target[name] !== s && (!(name in empty) || empty[name] !== s))){
+				target[name] = s;
+			}
+		}
+		return target; // Object
+	}
+        var delegate = (function(){
+		// boodman/crockford delegation w/ cornford optimization
+		function TMP(){}
+		return function(obj, props){
+			TMP.prototype = obj;
+			var tmp = new TMP();
+			TMP.prototype = null;
+			if(props){
+				_mixin(tmp, props);
+			}
+			return tmp; // Object
+		}
+	})();
+
+        var outputResult = (function(doc){
+            function byId(id){
+                return doc.getElementById(id);
+            }
+
+            function outputResult(name, result){
+                var out = byId("output"),
+                    li = doc.createElement("li");
+
+                li.innerHTML = name + ": " + result;
+                out.appendChild(li);
+                li = null;
+            }
+            return outputResult;
+        })(document);
+
+        outputResult("indexOf", ist(uber.indexOf([1,2,2,3], 2), 1));
+        outputResult("lastIndexOf", ist(uber.lastIndexOf([1,2,2,3], 2), 2));
+        outputResult("every", ist(uber.every([1,1,1,1], function(a){ return a == 1; }), true));
+        outputResult("every, again", ist(uber.every([1,2,1,1], function(a){ return a == 1; }), false));
+        outputResult("every", ist(uber.some([1,2,3,4], function(a){ return a == 4; }), true));
+        outputResult("some, again", ist(uber.some([1,2,3,4], function(a){ return a == 5; }), false));
+        outputResult("map", ist(uber.map([1,2,3,4], function(a){ return a + 1; }), [2,3,4,5]));
+        outputResult("filter", ist(uber.filter([1,2,3,4], function(a){ return a < 4; }), [1,2,3]));
+        outputResult("reduce", ist(uber.reduce([1,2,3,4], function(a, b){ return a + b; }), 10));
+        outputResult("reduceRight", ist(uber.reduceRight([1,2,3,4], function(a, b){ return a + b; }), 10));
+        (function(){
+            var obj1 = {
+                prop: "foo"
+            };
+            var obj2 = {
+                prop: "bar",
+                method: function(arg){
+                    return arg ? (arg + " " + (this.prop||"none")) : this.prop;
+                }
+            };
+            var b1 = uber.bind(obj2.method, obj1);
+            var b2 = uber.bind(obj2.method, obj2, "foo");
+            outputResult("bind", ist(b1(), "foo"));
+            outputResult("bind, again", ist(b2(), "foo bar"));
+
+            var c1 = uber.curry(obj2.method, "foo");
+            outputResult("curry", ist(c1(), "foo none"));
+            outputResult("curry, again", ist(c1.call(obj1), "foo foo"));
+
+			var count = 0;
+			uber.forIn(obj2, function(){ count++; });
+			outputResult("forIn", ist(count, 2));
+
+			var obj3 = uber.create(obj2, {
+				prop1: "baz"
+			});
+			outputResult("hasKey", uber.hasKey(obj3, "prop1"));
+			outputResult("hasKey, again", !uber.hasKey(obj3, "method"));
+			outputResult("create", obj3.prop1 == "baz" && ("prop" in obj3) && obj3.prop == "bar");
+			obj2.prop = "blah";
+			outputResult("create, again", obj3.prop == "blah");
+        })();
+
+		outputResult("isArray", uber.isArray([]));
+		outputResult("isFunction", uber.isFunction(function(){}));
+		outputResult("isString", uber.isString(""));
+		outputResult("isNumber", uber.isNumber(1000));
+		outputResult("isNumber, again", !uber.isNumber(Infinity));
+		outputResult("isRegExp", uber.isRegExp(/^$/));
+
+		(function(){
+			var d = new uber.Deferred;
+			var a1, a2, a3, a4;
+			d.then(function(arg){ a1 = arg; return 2; }).then(function(arg){ a2 = arg; return 3; });
+			d.then(function(arg){ a3 = arg; return 4; });
+			uber.when(d, function(arg){ a4 = arg; });
+			d.resolve(1);
+
+			outputResult("deferred 1", a1 == 1);
+			outputResult("deferred 2", a2 == 2);
+			outputResult("deferred 3", a3 == 1);
+			outputResult("when", a4 == 1);
+		})();
+        outputResult("trim", ist(uber.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029"), 'asdf'));
+        outputResult("trim, again", ist(uber.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\uFEFFasdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF"), 'asdf\uFEFFasdf'));
+        outputResult("byId",  ist(uber.byId("testelement").id, "testelement"));
+        outputResult("getStyleProperty", ist(uber.getStyleProperty("border-color"), "borderColor"));
+
+        var te = uber.byId("testelement");
+        if(has("css-selectable")){
+            var prop = uber.getStyleProperty("userSelect");
+            uber.setSelectable(te, false);
+            outputResult("setSelectable", ist(te.style[prop], "none"));
+        }else if(has("dom-selectable")){
+            uber.setSelectable(te, false);
+            outputResult("setSelectable", ist(te.unselectable, "on"));
+        }else{
+            outputResult("setSelectable", "n/a");
+        }
+
+        if(has("css-opacity")){
+            var prop = uber.getStyleProperty("opacity");
+            uber.setOpacity(te, "0.5");
+            outputResult("setOpacity", ist(te.style[prop], "0.5"));
+            outputResult("getOpacity", ist(uber.getOpacity(te), "0.5"));
+        }else if(has("css-opacity-filter")){
+            uber.setOpacity(te, "0.5");
+            outputResult("setOpacity", ist(uber.getOpacity(te), "0.5"));
+        }else{
+            outputResult("setOpacity", "n/a");
+        }
+
     </script>
 </body>
 </html>
