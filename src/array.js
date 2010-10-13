@@ -15,7 +15,7 @@
                     }
                     return arr;
                 }
-                return toArray(arrLike, offset, startWith);
+                return (startWith||[]).concat(aslice.call(arrLike, offset||0));
             };
         }
         return toArray;
