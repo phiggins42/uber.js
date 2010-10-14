@@ -30,6 +30,8 @@
         return toString.call(obj) == RE_CLASS;
     }
 
+    // Use uber.hasKey() on Object objects only as it may error on DOM Classes
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=375344
     var hop = Object.prototype.hasOwnProperty;
     if(isFunction(hop)){
         hasKey = function hasKey(obj, prop){
@@ -63,6 +65,7 @@
     }
 
     if(has("bug-dontenum-enumerable")){
+        // IE
         var shadowed = [
                 'constructor', 'hasOwnProperty',
                 'isPrototypeOf', 'propertyIsEnumerable',
@@ -87,7 +90,8 @@
             return target;
         };
     }else if(has("bug-for-in-doubled")){
-        // Safari 2
+        // Tobie Langel: Safari 2 broken for-in loop
+        // http://replay.waybackmachine.org/20090428222941/http://tobielangel.com/2007/1/29/for-in-loop-broken-in-safari/
         forIn = function forIn(target, callback, thisArg){
             var keys = {}, ignorep = uber.isFunction(target);
             thisArg && (callback = uber.bind(callback, thisArg));
@@ -99,6 +103,7 @@
             return target;
         };
     }else{
+        // Everything else
         forIn = function forIn(target, callback, thisArg){
             thisArg && (callback = uber.bind(callback, thisArg));
             var ignorep = uber.isFunction(target);
