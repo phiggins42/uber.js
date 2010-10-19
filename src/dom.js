@@ -3,7 +3,7 @@
 
     var hasAEL = has("dom-addeventlistener"),
         hasAE = has("dom-attachevent"),
-        div = document.createElement("DiV");
+        div = document.createElement("div");
 
     var addEvent, removeEvent;
     if(hasAEL){
@@ -39,11 +39,10 @@
         };
     }
     var domReady = new uber.Deferred(),
-        domReadyDone = false,
-        documentReadyStates = { 'loaded': 1, 'interactive': 1, 'complete': 1 },
+        documentReadyStates = { "loaded": 1, "interactive": 1, "complete": 1 },
         fixReadyState = typeof document.readyState != "string",
         isLoaded = false,
-        pollScrollTimeout;
+        pollerTO;
 
     function onDOMReady(){
         if(isLoaded){ return; }
@@ -54,77 +53,62 @@
         if(fixReadyState){
             document.readyState = "interactive";
         }
-        if(hasAEL){
-            removeEvent(document, "DOMContentLoaded", onDOMContentLoaded);
-        }
-        removeEvent(document, "readystatechange", onReadyStateChange);
-        removeEvent(window, "load", onWindowLoad);
+        removeEvent(document, "DOMContentLoaded", onHandlerLoaded);
+        removeEvent(document, "readystatechange", onHandlerLoaded);
+        removeEvent(window, "load", onHandlerLoaded);
 
-        if(pollScrollTimeout){
-            clearTimeout(pollScrollTimeout);
+        if(pollerTO){
+            clearTimeout(pollerTO);
         }
 
         domReady.resolve();
-        domReadyDone = true;
     }
-    function onDOMContentLoaded(event){
+    function onHandlerLoaded(){
         if(isLoaded){ return; }
-        if(documentReadyStates[document.readyState]){
-            console.log("onDOMContentLoaded");
-            onDOMReady();
-        }
-    }
-    function onReadyStateChange(){
-        if(isLoaded){ return; }
-        console.log("onReadyStateChange");
         onDOMReady();
     }
-    function onWindowLoad(){
-        if(!isLoaded){
-            console.log("onWindowLoad");
-            onDOMReady();
-        }else if(!domReadyDone){
-            // try again later if domReady is still executing handlers
-            setTimeout(function(){ onWindowLoad(); }, 10);
-        }
-    }
-    function pollScroll(){
+    var doScrollCheck = false;
+    function poller(){
         if(isLoaded){ return; }
-        try { div.doScroll(); } catch(e) {
-            pollScrollTimeout = setTimeout(pollScroll, 10);
+        // doScroll will not throw an error when in an iframe
+        // so we rely on the event system to fire the domReady event
+        // before the window onload in IE6/7
+        if(doScrollCheck){
+            try {
+                div.doScroll();
+                console.log("scroll ready");
+                onDOMReady();
+                return;
+            } catch(e) { }
+        }
+        if(documentReadyStates[document.readyState]){
+            console.log("readystate poll ready");
+            onDOMReady();
             return;
         }
-        console.log("pollScroll");
-        onDOMReady();
+        pollerTO = setTimeout(poller, 30);
     }
     if(document.readyState == "complete"){
         domReady.resolve();
-        domReadyDone = true;
     }else{
-        // Connect to "load" and "readystatechange", and either connect to
-        // "DOMContentLoaded" or poll for div.doScroll. First one fired wins.
-        var doScrollCheck = false;
+		// Connect to "load" and "readystatechange", poll for "readystatechange",
+		// and either connect to "DOMContentLoaded" or poll for div.doScroll.
+		// First one fired wins.
         if(hasAEL){
-            addEvent(document, "DOMContentLoaded", onDOMContentLoaded);
-        }else if(has("dom-element-do-scroll") && !(has("json-parse") && has("json-stringify"))){
-            // Weak inference used as IE 6/7 have the operation aborted error
+            addEvent(document, "DOMContentLoaded", onHandlerLoaded);
+        }else if(has("dom-element-do-scroll")){
             // Avoid a potential browser hang when checking window.top (thanks Rich Dougherty)
             // The value of frameElement can be null or an object.
             // Checking window.frameElement could throw if not accessible.
             try { doScrollCheck = global.frameElement == null; } catch(e) { }
         }
 
-        addEvent(global, "load", onWindowLoad);
-        addEvent(document, "readystatechange", onReadyStateChange);
+        addEvent(global, "load", onHandlerLoaded);
+        addEvent(document, "readystatechange", onHandlerLoaded);
 
-        // doScroll will not throw an error when in an iframe
-        // so we rely on the event system to fire the domReady event
-        // before the window onload in IE6/7
-        if(doScrollCheck){
-            // Derived with permission from Diego Perini's IEContentLoaded
-            // http://javascript.nwbox.com/IEContentLoaded/
-            pollScrollTimeout = setTimeout(pollScroll, 10);
-        }
+        // Derived with permission from Diego Perini's IEContentLoaded
+        // http://javascript.nwbox.com/IEContentLoaded/
+        pollerTO = setTimeout(poller, 30);
     }
 
     // The following code only sets up the event on the objects
