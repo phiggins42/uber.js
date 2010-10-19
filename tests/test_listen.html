@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Listen test</title>
+    <script src="../has.js/has.js"></script>
+    <script src="../has.js/detect/array.js"></script>
+    <script src="../has.js/detect/strings.js"></script>
+    <script src="../has.js/detect/bugs.js"></script>
+    <script src="../has.js/detect/dom.js"></script>
+    <script src="../has.js/detect/css.js"></script>
+    <script src="../has.js/detect/function.js"></script>
+    <script src="../has.js/detect/object.js"></script>
+    <script src="../has.js/detect/events.js"></script>
+    <script src="../uber.js"></script>
+    <script src="../src/html.js"></script>
+    <script src="../src/promise.js"></script>
+    <script src="../src/deferred.js"></script>
+    <script src="../src/dom.js"></script>
+    <script src="../src/dispatcher.js"></script>
+    <script src="../src/event.js"></script>
+</head>
+<body>
+	<button id="clickMe">Click me!</button>
+	<button id="pauseOne">Pause One</button>
+	<button id="pauseTwo">Pause Two</button>
+	<br/>
+	<textarea id="output" style="width: 400px; height: 100px;"></textarea>
+	<script>
+		var clickHandle1 = null,
+			clickHandle2 = null;
+		(function(){
+			var cm = uber.byId("clickMe");
+			clickHandle1 = uber.listen(cm, "onclick", function(){
+				var o = uber.byId("output");
+				o.innerHTML += "handler 1\n";
+				o.scrollTop = o.scrollHeight;
+			});
+			clickHandle2 = uber.listen(cm, "onclick", function(){
+				var o = uber.byId("output");
+				o.innerHTML += "handler 2\n";
+				o.scrollTop = o.scrollHeight;
+			});
+
+			uber.listen(uber.byId("pauseOne"), "onclick", function(){
+				if(clickHandle1.paused()){
+					clickHandle1.resume();
+				}else{
+					clickHandle1.pause();
+				}
+			});
+			uber.listen(uber.byId("pauseTwo"), "onclick", function(){
+				if(clickHandle2.paused()){
+					clickHandle2.resume();
+				}else{
+					clickHandle2.pause();
+				}
+			});
+		})();
+	</script>
+</body>
+</html>

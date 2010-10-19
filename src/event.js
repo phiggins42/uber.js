@@ -1,7 +1,8 @@
 (function(uber, has, global){
-    var whenEvent, preventDefault, stopPropagation;
+    var whenEvent, preventDefault, stopPropagation,
+        normalizeEventName, _listen;
 
-    var _trySetKeyCode = function(evt, code){
+    function _trySetKeyCode(evt, code){
         try{
             // squelch errors when keyCode is read-only
             // (e.g. if keyCode is ctrl or shift)
@@ -23,7 +24,7 @@
             // Try to split the difference here by clobbering keyCode only for ctrl 
             // combinations. If you still need to access the key upstream, bubbledKeyCode is
             // provided as a workaround.
-			evt = evt || global.event;
+            evt = evt || global.event;
             evt.bubbledKeyCode = evt.keyCode;
             if(evt.ctrlKey){ _trySetKeyCode(evt, 0); }
             evt.returnValue = false;
@@ -36,7 +37,7 @@
         };
     }else{
         stopPropagation = function stopPropagation(evt){
-            evt.cancelBubble = true; 
+            evt.cancelBubble = true;
         };
     }
 
@@ -45,79 +46,66 @@
         uber.stopPropagation(evt);
     }
 
-	var _uberId = 0, getUberId;
-	
-	var div = document.createElement("div"),
-		docEl = document.documentElement,
-		hasUniqueNumber = (typeof div.uniqueNumber == 'number' &&
-			docEl.uniqueNumber == 'number' &&
-			div.uniqueNumber != docEl.uniqueNumber),
-		hasAEL = has("dom-addeventlistener"),
-		hasAE = has("dom-attachevent");
-	
-	if(hasUniqueNumber){
-		getUberId = function getUberId(node){
-			return node.uniqueNumber;
-		}
-	}else{
-		getUberId = function getUberId(node){
-			if(typeof node._uberId != "undefined"){
-				return node._uberId;
-			}
-			return node._uberId = _uberId++;
-		}
-	}
+    var hasAEL = has("dom-addeventlistener"),
+        hasAE = has("dom-attachevent");
 
-	var normalizeEventName;
-	if(hasAEL){
-		normalizeEventName = function normalizeEventName(/*String*/ name){
-			// Generally, name should be lower case, unless it is special
-			// somehow (e.g. a Mozilla DOM event).
-			// Remove 'on'.
-			return name.slice(0,2) =="on" ? name.slice(2) : name;
-		};
-	}else{
-		normalizeEventName = function normalizeEventName(/*String*/ eventName){
-			// Generally, eventName should be lower case, unless it is
-			// special somehow (e.g. a Mozilla event)
-			// ensure 'on'
-			return eventName.slice(0,2) != "on" ? "on" + eventName : eventName;
-		};
-	}
+    if(hasAEL){
+        normalizeEventName = function normalizeEventName(/*String*/ name){
+            // Generally, name should be lower case, unless it is special
+            // somehow (e.g. a Mozilla DOM event).
+            // Remove 'on'.
+            return name.slice(0,2) =="on" ? name.slice(2) : name;
+        };
+    }else{
+        normalizeEventName = function normalizeEventName(/*String*/ eventName){
+            // Generally, eventName should be lower case, unless it is
+            // special somehow (e.g. a Mozilla event)
+            // ensure 'on'
+            return eventName.slice(0,2) != "on" ? "on" + eventName : eventName;
+        };
+    }
 
-	var dispatcherCache = {}, listen, oldListen = uber.listen,
-		isNode, _listen;
 
-	if(hasAEL){
-		_listen = function _listen(obj, eventName, dispatcher){
-			obj.addEventListener(eventName, dispatcher, false);
-		};
-	}else if(hasAE){
-		// IE
-		_listen = function _listen(obj, eventName, dispatcher){
-			obj.attachEvent(eventName, dispatcher);
-		};
-	}else{
-		// DOM0
-		console.log("here");
-	}
-	
-	function listen(obj, method, func){
-		if(!obj.nodeType){
-			return oldListen.apply(this, arguments);
-		}
-		var id = getUberId(obj), d;
-		if(!dispatcherCache[id]){
-			d = dispatcherCache[id] = uber.createDispatcher();
-		}else{
-			d = dispatcherCache[id];
-		}
-		_listen(obj, normalizeEventName(method), d);
-		return d.add(func);
-	}
+    if(hasAEL){
+        _listen = function _listen(obj, eventName, dispatcher){
+            obj.addEventListener(eventName, dispatcher, false);
+        };
+    }else if(hasAE){
+        // IE
+        _listen = function _listen(obj, eventName, dispatcher){
+            obj.attachEvent(eventName, dispatcher);
+        };
+    }else{
+        // TODO: implement this?
+        // DOM0
+    }
+
+    var nodeDispatcherCache = {
+        '0': { }, // window
+        '1': { }  // document
+    };
+
+    function listen(obj, method, func){
+        if(!obj.nodeType){
+            throw new Error();
+        }
+        var id = uber.getNodeId(obj), d,
+            evtName = normalizeEventName(method);
+        if(!nodeDispatcherCache[id]){
+            nodeDispatcherCache[id] = {};
+        }
+        if(!nodeDispatcherCache[id][evtName]){
+            d = nodeDispatcherCache[id][evtName] = uber.createDispatcher();
+            _listen(obj, evtName, d);
+        }else{
+            d = nodeDispatcherCache[id][evtName];
+        }
+        return d.add(func);
+    }
 
     uber.preventDefault = preventDefault;
     uber.stopPropagation = stopPropagation;
     uber.stopEvent = stopEvent;
-	uber.listen = listen;
+    uber.listen = listen;
+
 })(uber, has, this);

@@ -1,36 +1,18 @@
 (function(uber, has, global){
 
-    function Handle(){ }
-    (function(){
-        function cancel(){
-            throw new Error("not implemented");
-        }
-        function pause(){
-            throw new Error("not implemented");
-        }
-        function paused(){
-            throw new Error("not implemented");
-        }
-        function resume(){
-            throw new Error("not implemented");
-        }
-        Handle.prototype.cancel = cancel;
-        Handle.prototype.pause = pause;
-        Handle.prototype.resume = resume;
-        Handle.prototype.paused = paused;
-    })();
+    function Handle(){}
 
     var ap = Array.prototype;
     function createDispatcher(){
         var listeners = [], nextId = 0;
         function dispatcher(){
             var ls = listeners.slice(1),
-				first = listeners[0],
+                first = listeners[0],
                 r, i, l;
 
-			if(first && !first.paused){
-				r = first.callback.apply(this, arguments);
-			}
+            if(first && !first.paused){
+                r = first.callback.apply(this, arguments);
+            }
             for(i=0, l=ls.length; i<l; i++){
                 var ln = ls[i];
                 if(!(i in ap) && ln && !ln.paused){
@@ -70,7 +52,7 @@
         return dispatcher;
     }
 
-    function listen(obj, method, func){
+    function connect(obj, method, func){
         var f = (obj||global)[method];
         if(!f || !(f.add&&f.remove)){
             var d = createDispatcher();
@@ -81,6 +63,6 @@
     }
 
     uber.createDispatcher = createDispatcher;
-    uber.listen = listen;
+    uber.connect = connect;
 
 })(uber, has, this);
