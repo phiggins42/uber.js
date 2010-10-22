@@ -175,7 +175,12 @@
 			originalCalled = bCalled = cCalled = false;
 			b.cancel();
 			a.foo();
-			outputResult("connect, one last time", originalCalled && !bCalled && cCalled);
+			outputResult("connect, another time", originalCalled && !bCalled && cCalled);
+
+			originalCalled = bCalled = cCalled = false;
+			c.cancel();
+			a.foo();
+			outputResult("connect, one last time", originalCalled && !bCalled && !cCalled);
 		})();
 
 		(function(){

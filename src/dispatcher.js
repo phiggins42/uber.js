@@ -1,36 +1,41 @@
 (function(uber, has, global){
 
-    function Handle(){}
+    function Handle(args){
+        uber.mixin(this, args);
+    }
 
     var ap = Array.prototype;
     function createDispatcher(){
-        var listeners = [], nextId = 0;
+        var listeners = [];
         function dispatcher(){
-            var ls = listeners.slice(1),
-                first = listeners[0],
-                r, i, l;
+            var lls = listeners.slice(0),
+                first = lls[0],
+                r, i, l, ls;
 
             if(first && !first.paused){
                 r = first.callback.apply(this, arguments);
             }
-            for(i=0, l=ls.length; i<l; i++){
-                var ln = ls[i];
-                if(!(i in ap) && ln && !ln.paused){
-                    ln.callback.apply(this, arguments);
+            for(i=1, l=lls.length; i<l; i++){
+                ls = lls[i];
+                if((i in lls) && !ls.paused){
+                    ls.callback.apply(this, arguments);
                 }
             }
             return r;
         }
         function add(callback){
-            var h = new Handle, id = nextId++,
-                l = listeners[id] = {
+            var l = {
                     callback: callback,
-                    handle: h,
                     paused: false
                 };
+            listeners.push(l);
 
             function cancel(){
-                delete listeners[id];
+                for(var i=listeners.length; i--;){
+                    if(listeners[i] === l){
+                        listeners.splice(i, 1);
+                    }
+                }
             }
             function pause(){
                 l.paused = true;
@@ -41,12 +46,13 @@
             function paused(){
                 return l.paused;
             }
-            h.cancel = cancel;
-            h.pause = pause;
-            h.resume = resume;
-            h.paused = paused;
 
-            return h;
+            return new Handle({
+                cancel: cancel,
+                pause: pause,
+                resume: resume,
+                paused: paused
+            });
         }
         dispatcher.add = add;
         return dispatcher;
@@ -54,7 +60,7 @@
 
     function connect(obj, method, func){
         var f = (obj||global)[method];
-        if(!f || !(f.add&&f.remove)){
+        if(!f || !f.add){
             var d = createDispatcher();
             f && d.add(f);
             f = obj[method] = d;
