@@ -1,49 +1,9 @@
 (function(uber, has, document){
 
     var STR = "string",
-        byId, getComputedStyle, getStyleProperty,
+        getComputedStyle, getStyleProperty,
         setSelectable, setOpacity, getOpacity
     ;
-
-    if(has("bug-getelementbyid-ids-names")||has("bug-getelementbyid-ignores-case")){
-        byId = function byId(id, doc){
-            var _d = doc || document, te = _d.getElementById(id);
-            // attributes.id.value is better than just id in case the 
-            // user has a name=id inside a form
-            if(te && (te.attributes.id.value == id || te.id == id)){
-                return te;
-            }else{
-                var eles = _d.all[id];
-                if(!eles || eles.nodeName){
-                    eles = [eles];
-                }
-                // if more than 1, choose first with the correct id
-                var i = 0;
-                while((te = eles[i++])){
-                    if((te.attributes && te.attributes.id && te.attributes.id.value == id)
-                    || te.id == id){
-                        return te;
-                    }
-                }
-            }
-        };
-    }else{
-        byId = function byId(id, doc){
-            return (doc||document).getElementById(id);
-        };
-    }
-
-    function isDescendant(node, ancestor){
-        try{
-            while(node){
-                if(node === ancestor){
-                    return true;
-                }
-                node = node.parentNode;
-            }
-        }catch(e){};
-        return false;
-    }
 
     uber.boxModel = has("css-content-box") ? "content-box" : "border-box";
     uber.styleProperty = has("css-style-float") ? "styleFloat" : "cssFloat";
@@ -148,12 +108,12 @@
         };
     }else if(has("css-opacity-filter")){
         setOpacity = function setOpacity(node, value){
-            var ov = opacity * 100, opaque = opacity == 1;
+            var ov = value * 100, opaque = value == 1;
             node.style.zoom = opaque ? "" : 1;
 
             if(!af(node)){
                 if(opaque){
-                    return opacity;
+                    return value;
                 }
                 node.style.filter += " progid:" + astr + "(Opacity=" + ov + ")";
             }else{
@@ -164,13 +124,12 @@
             //but still update the opacity value so we can get a correct reading if it is read later.
             af(node, 1).Enabled = !opaque;
 
-            // TODO: figure out how to do this
-            /*if(node.nodeName.toLowerCase() == "tr"){
-                d.query("> td", node).forEach(function(i){
-                    setOpacityFilter(i, opacity);
-                });
-            }*/
-            return opacity;
+            if(node.nodeName.toLowerCase() == "tr"){
+                for(var i=node.cells.length; i--;){
+                    uber.setOpacity(node.cells[i], value);
+                }
+            }
+            return value;
         };
         getOpacity = function getOpacity(node){
             try{
@@ -184,7 +143,6 @@
         getOpacity = function getOpacity(){ throw new Error(); };
     }
 
-    uber.byId = byId;
     uber.getComputedStyle = getComputedStyle;
     uber.getStyleProperty = getStyleProperty;
     uber.setSelectable = setSelectable;
