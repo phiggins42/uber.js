@@ -1,4 +1,4 @@
-(function(uber, has, global){
+(function(uber, global){
 
     function Handle(args){
         uber.mixin(this, args);
@@ -75,4 +75,4 @@
     uber.createDispatcher = createDispatcher;
     uber.connect = connect;
 
-})(uber, has, this);
+})(uber, this);
