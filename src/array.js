@@ -66,23 +66,35 @@
     }else{
         lastIndexOf = function lastIndexOf(arr, searchElement, fromIndex){
             var result = -1,
-                l = arr.length,
-                n = fromIndex >>> 0,
-                k, item;
-            if(l > 0){
-                if(n>=0){
-                    k = Math.min(n, l-1);
-                }else{
-                    k = l - Math.abs(n);
+                l = arr.length >>> 0;
+            if(l<=0){
+                return result;
+            }
+
+            // Adapted from John-David Dalton
+            var n = +fromIndex;
+            if(isNaN(n)){
+                n = l;
+            }else if(n !== 0 && !isFinite(n)){
+                // avoid issues with numbers larger than
+                // Math.pow(2, 31) against bitwise operators
+                n = Math.abs(n) < 2147483648 ? n | 0 : n - (n % 1);
+            }
+            // End adaptation
+
+            var k, item;
+            if(n>=0){
+                k = Math.min(n, l-1);
+            }else{
+                k = l - Math.abs(n);
+            }
+            while(k>=0){
+                item = arr[k];
+                if((k in arr) && searchElement === item){
+                    result = k;
+                    break;
                 }
-                while(k>=0){
-                    item = arr[k];
-                    if((k in arr) && searchElement === item){
-                        result = k;
-                        break;
-                    }
-                    k--;
-                }
+                k--;
             }
             return result;
         };
