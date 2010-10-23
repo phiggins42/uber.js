@@ -1,4 +1,4 @@
-(function(uber){
+(function(uber, global){
     uber._topics = {};
 
     function subscribe(topic, func){
@@ -13,10 +13,10 @@
     function publish(topic, args){
         var f = uber._topics[topic];
         if(f){
-            f.apply(this, args||[]);
+            f.apply(global, args||[]);
         }
     }
 
     uber.subscribe = subscribe;
     uber.publish = publish;
-})(uber);
+})(uber, this);
