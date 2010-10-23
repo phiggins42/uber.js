@@ -3,9 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Tests</title>
-    <style>
-        
-    </style>
+
     <script src="../has.js/has.js"></script>
     <script src="../has.js/detect/array.js"></script>
     <script src="../has.js/detect/strings.js"></script>
@@ -20,29 +18,27 @@
     <script src="../src/function.js"></script>
     <script src="../src/object.js"></script>
     <script src="../src/string.js"></script>
-    <script src="../src/html.js"></script>
     <script src="../src/promise.js"></script>
     <script src="../src/deferred.js"></script>
     <script src="../src/dom.js"></script>
+    <script src="../src/html.js"></script>
     <script src="../src/dispatcher.js"></script>
     <script src="../src/event.js"></script>
 
     <script src="test.js"></script>
 
-	<script>
-		uber.domReady().then(function(){ outputResult("domReady", true); });
-		uber.unload().then(function(){ console.log("unload!"); });
-		uber.beforeUnload().then(function(){ console.log("beforeUnload!"); });
-	</script>
+    <script>
+        uber.domReady().then(function(){ outputResult("domReady", true); });
+    </script>
 </head>
 <body>
     <ul id="output">
     </ul>
     <div id="TestElement"></div>
     <div id="testelement"></div>
-	<div style="display: none;">
-		<input id="test_input" type="button">
-	</div>
+    <div style="display: none;">
+        <input id="test_input" type="button">
+    </div>
     <script>
         outputResult("indexOf", ist(uber.indexOf([1,2,2,3], 2), 1));
         outputResult("lastIndexOf", ist(uber.lastIndexOf([1,2,2,3], 2), 2));
@@ -147,58 +143,58 @@
             outputResult("getOpacity", ist(uber.getOpacity(te), "0.5"));
         }else if(has("css-opacity-filter")){
             uber.setOpacity(te, "0.5");
-            outputResult("setOpacity", ist(uber.getOpacity(te), "0.5"));
+            outputResult("setOpacity", ist(uber.getOpacity(te), 0.5));
         }else{
             outputResult("setOpacity", "n/a");
         }
 
-		(function(){
-			var originalCalled, bCalled, cCalled;
-			originalCalled = bCalled = cCalled = false;
-			var a = { foo: function(){ originalCalled = true; return 1; } };
-			var b = uber.connect(a, "foo", function(){ bCalled = true; return 2; });
-			var c = uber.connect(a, "foo", function(){ cCalled = true; return 3; });
+        (function(){
+            var originalCalled, bCalled, cCalled;
+            originalCalled = bCalled = cCalled = false;
+            var a = { foo: function(){ originalCalled = true; return 1; } };
+            var b = uber.connect(a, "foo", function(){ bCalled = true; return 2; });
+            var c = uber.connect(a, "foo", function(){ cCalled = true; return 3; });
 
-			var res = a.foo();
-			outputResult("connect", res == 1 && originalCalled && bCalled && cCalled);
+            var res = a.foo();
+            outputResult("connect", res == 1 && originalCalled && bCalled && cCalled);
 
-			originalCalled = bCalled = cCalled = false;
-			b.pause();
-			a.foo();
-			outputResult("connect, again", originalCalled && !bCalled && cCalled);
+            originalCalled = bCalled = cCalled = false;
+            b.pause();
+            a.foo();
+            outputResult("connect, again", originalCalled && !bCalled && cCalled);
 
-			originalCalled = bCalled = cCalled = false;
-			b.resume();
-			a.foo();
-			outputResult("connect, once more", originalCalled && bCalled && cCalled);
+            originalCalled = bCalled = cCalled = false;
+            b.resume();
+            a.foo();
+            outputResult("connect, once more", originalCalled && bCalled && cCalled);
 
-			originalCalled = bCalled = cCalled = false;
-			b.cancel();
-			a.foo();
-			outputResult("connect, another time", originalCalled && !bCalled && cCalled);
+            originalCalled = bCalled = cCalled = false;
+            b.cancel();
+            a.foo();
+            outputResult("connect, another time", originalCalled && !bCalled && cCalled);
 
-			originalCalled = bCalled = cCalled = false;
-			c.cancel();
-			a.foo();
-			outputResult("connect, one last time", originalCalled && !bCalled && !cCalled);
-		})();
+            originalCalled = bCalled = cCalled = false;
+            c.cancel();
+            a.foo();
+            outputResult("connect, one last time", originalCalled && !bCalled && !cCalled);
+        })();
 
-		(function(){
-			var input = uber.byId("test_input"), a, b, aCalled, bCalled;
-			aCalled = bCalled = false;
-			a = uber.listen(input, "onclick", function(){
-				aCalled = true;
-			});
-			b = uber.listen(input, "onclick", function(){
-				bCalled = true;
-			});
-			input.click();
-			outputResult("listen node", aCalled && bCalled);
-			a.pause();
-			aCalled = bCalled = false;
-			input.click();
-			outputResult("listen node, again", !aCalled && bCalled);
-		})();
+        (function(){
+            var input = uber.byId("test_input"), a, b, aCalled, bCalled;
+            aCalled = bCalled = false;
+            a = uber.listen(input, "onclick", function(){
+                aCalled = true;
+            });
+            b = uber.listen(input, "onclick", function(){
+                bCalled = true;
+            });
+            input.click();
+            outputResult("listen node", aCalled && bCalled);
+            a.pause();
+            aCalled = bCalled = false;
+            input.click();
+            outputResult("listen node, again", !aCalled && bCalled);
+        })();
 
     </script>
 </body>
