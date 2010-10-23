@@ -1,8 +1,6 @@
-uber = (function(g, d, has){
-    var uber = {};
-
-    uber.isHostType = has.isHostType;
-    uber.clearElement = has.clearElement;
-
-    return uber;
+(function(g, d, has){
+    g.uber = {
+        isHostType: has.isHostType,
+        clearElement: has.clearElement
+    };
 })(this, document, has);
