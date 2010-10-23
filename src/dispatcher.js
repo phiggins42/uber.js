@@ -6,16 +6,15 @@
 
     var ap = Array.prototype;
     function createDispatcher(){
-        var listeners = [];
+        var listeners = [], first;
         function dispatcher(){
             var lls = listeners.slice(0),
-                first = lls[0],
                 r, i, l, ls;
 
-            if(first && !first.paused){
-                r = first.callback.apply(this, arguments);
+            if(first){
+                r = first.apply(this, arguments);
             }
-            for(i=1, l=lls.length; i<l; i++){
+            for(i=0, l=lls.length; i<l; i++){
                 ls = lls[i];
                 if((i in lls) && !ls.paused){
                     ls.callback.apply(this, arguments);
@@ -25,9 +24,9 @@
         }
         function add(callback){
             var l = {
-                    callback: callback,
-                    paused: false
-                };
+                callback: callback,
+                paused: false
+            };
             listeners.push(l);
 
             function cancel(){
@@ -54,15 +53,20 @@
                 paused: paused
             });
         }
-        dispatcher.add = add;
+        function addFirst(callback){
+            first = callback;
+            dispatcher.add = add;
+        }
+        dispatcher.add = addFirst;
         return dispatcher;
     }
 
     function connect(obj, method, func){
+        // DO NOT use this on nodes.  For nodes, use uber.listen.
         var f = (obj||global)[method];
         if(!f || !f.add){
             var d = createDispatcher();
-            f && d.add(f);
+            d.add(f);
             f = obj[method] = d;
         }
         return f.add(func);
