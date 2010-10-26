@@ -17,16 +17,22 @@
 </head>
 <body>
     <!-- Adapted from https://gist.github.com/43245cbb7db4eab2ad8c -->
-    <script type="text/javascript">
-        (function() {
-            var i =-1, l = 1000;
-            while (++i < l) {
-                (function(i) {
-                    var e = document.createElement("div");
-                    uber.listen(e, "onclick", function(){});
-                })(i);
-            }
-        })();
-    </script>
+	<div id="container"></div>
+	<script>
+		(function(){
+            var i =-1, l = 1000, container = document.getElementById("container");
+            while (++i < l){
+				var e = document.createElement("div");
+				(function(elem){
+					function LeakFunc(){
+						elem.innerHTML = "foo";
+					}
+                    uber.listen(elem, "onclick", LeakFunc);
+					container.appendChild(elem);
+				})(e);
+			}
+			container.innerHTML = "";
+		})();
+	</script>
 </body>
 </html>
