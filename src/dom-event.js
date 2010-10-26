@@ -85,8 +85,18 @@
             obj.detachEvent(eventName, func);
         };
     }else{
-        // TODO: implement this?
         // DOM0
+        _listen = function _listen(obj, eventName, func, id){
+            var f = obj[eventName], ed = uber._eventData,
+                d = ed[id][eventName];
+            d.add(f);
+            obj[eventName] = func;
+        };
+        _stopListening = function _stopListening(obj, eventName, func, id){
+            var ed = uber._eventData, d = ed[id][eventName],
+                f = d.listeners[0];
+            obj[eventName] = f;
+        };
     }
 
     uber._eventData = {
@@ -105,7 +115,7 @@
             d = ed[id][eventName];
         }
         if(!d.listeners || !d.listeners.length){
-            _listen(node, eventName, d.dispatcher);
+            _listen(node, eventName, d.dispatcher, id);
         }
         return d;
     }
@@ -113,7 +123,7 @@
     function removeEventData(node, eventName){
         var id = uber.getNodeId(node), ed = uber._eventData;
         if((id in ed) && (eventName in ed[id])){
-            _stopListening(node, eventName, ed[id][eventName].dispatcher);
+            _stopListening(node, eventName, ed[id][eventName].dispatcher, id);
             delete ed[id][eventName];
         }
     }
