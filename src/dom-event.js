@@ -1,5 +1,5 @@
 (function(global){
-    // We don't pass in uber to prevent IE from leaking on uber._eventData
+    // We can't pass in uber to prevent IE from leaking on uber._eventData
 
     if(!has("dom")){ return; }
 
@@ -76,7 +76,7 @@
         _stopListening = function _stopListening(obj, eventName, func){
             obj.removeEventListener(eventName, func, false);
         };
-    }else if(uber.isHostType(global, "attachEvent")){
+    }else if(has("dom-attachevent")){
         // IE
         _listen = function _listen(obj, eventName, func){
             obj.attachEvent(eventName, func);
@@ -104,46 +104,22 @@
         '1': {}  // document
     };
 
-    function getEventData(node, eventName){
-        var id = uber.getNodeId(node), ed = uber._eventData, d;
-        if(!(id in ed)){
-            ed[id] = {};
-        }
-        if(!(eventName in ed[id])){
-            d = ed[id][eventName] = createNodeDispatcher(id, eventName);
-        }else{
-            d = ed[id][eventName];
-        }
-        if(!d.listeners || !d.listeners.length){
-            _listen(node, eventName, d.dispatcher, id);
-        }
-        return d;
-    }
-
-    function removeEventData(node, eventName){
-        var id = uber.getNodeId(node), ed = uber._eventData;
-        if((id in ed) && (eventName in ed[id])){
-            _stopListening(node, eventName, ed[id][eventName].dispatcher, id);
-            delete ed[id][eventName];
-        }
-    }
-
     var createNodeDispatcher = (function(){
-        // This MUST be in a closure so listen and stopListening don't close around the
-        // variables in here to prevent IE from leaking.
-
-        function NodeEventHandle(data, id){
+        function NodeEventHandle(nodeId, eventName, idx){
+            function getData(){
+                return uber._eventData[nodeId][eventName];
+            }
             this.cancel = function(){
-                delete data.listeners[id];
+                delete getData().listeners[idx];
             };
             this.pause = function(){
-                data.listeners[id].paused = true;
+                getData().listeners[idx].paused = true;
             };
             this.resume = function(){
-                data.listeners[id].paused = false;
+                getData().listeners[idx].paused = false;
             };
             this.paused = function(){
-                return data.listeners[id].paused;
+                return getData().listeners[idx].paused;
             };
         }
 
@@ -161,12 +137,12 @@
             }
             function add(callback){
                 var data = uber._eventData[nodeId][eventName];
-                    id = nextId++;
-                data.listeners[id] = {
+                    idx = nextId++;
+                data.listeners[idx] = {
                     callback: callback,
                     paused: false
                 };
-                return new NodeEventHandle(data, id);
+                return new NodeEventHandle(nodeId, eventName, idx);
             }
             return {
                 dispatcher: dispatcher,
@@ -182,8 +158,20 @@
             throw new Error();
         }
         var id = uber.getNodeId(obj),
-            evtName = normalizeEventName(eventName),
-            d = getEventData(obj, evtName);
+            evtName = uber.normalizeEventName(eventName),
+            ed = uber._eventData, d;
+
+        if(!(id in ed)){
+            ed[id] = {};
+        }
+        if(!(evtName in ed[id])){
+            d = ed[id][evtName] = createNodeDispatcher(id, evtName);
+        }else{
+            d = ed[id][evtName];
+        }
+        if(!d.listeners || !d.listeners.length){
+            _listen(obj, evtName, d.dispatcher, id);
+        }
         return d.add(func);
     }
 
@@ -193,12 +181,56 @@
             throw new Error();
         }
         var id = uber.getNodeId(obj),
-            evtName = normalizeEventName(eventName);
+            evtName = uber.normalizeEventName(eventName),
+            ed = uber._eventData;
 
-        removeEventData(obj, eventName);
+        if((id in ed) && (evtName in ed[id])){
+            _stopListening(obj, evtName, ed[id][evtName].dispatcher, id);
+            delete ed[id][evtName];
+        }
     }
 
-    (function(){
+    function destroyElementData(element, recurse){
+        var id = uber.getNodeId(element),
+            data = uber._eventData[id],
+            sl = uber.stopListening;
+
+        if(data){
+            // This is to keep element out of a closure using forIn
+            var keys = uber.keys(data);
+            for(var i=keys.length; i--;){
+                _stopListening(element, keys[i], data[keys[i]].dispatcher, id);
+                delete data[keys[i]];
+            }
+        }
+        if(recurse){
+            destroyDescendantData(element);
+        }
+        delete uber._eventData[id];
+    }
+    function destroyDescendantData(element){
+        var i = -1, elements = element.getElementsByTagName("*");
+
+        while(element = elements[++i]){
+            if(element.nodeType == ELEMENT_NODE){
+                destroyElementData(element, false);
+            }
+        }
+    }
+
+    var oldDestroyElement = uber.destroyElement;
+    function destroyElement(element, parent){
+        destroyElementData(element, true);
+        oldDestroyElement(element, parent);
+    }
+
+    var oldDestroyDescendants = uber.destroyDescendants;
+    function destroyDescendants(element){
+        destroyDescendantData(element);
+        oldDestroyDescendants(element);
+    }
+
+    uber.domReady = (function(){
         // This MUST be in a closure so listen and stopListening don't close around the
         // variables in here.
         var domReady = new uber.Deferred(),
@@ -218,6 +250,7 @@
             if(fixReadyState){
                 document.readyState = "interactive";
             }
+            var stopListening = uber.stopListening;
             stopListening(document, "DOMContentLoaded");
             stopListening(document, "readystatechange");
             stopListening(global, "load");
@@ -272,6 +305,14 @@
             pollerTO = setTimeout(poller, 30);
         }
 
+        // only pass back the promise so the deferred can't
+        // be modified
+        return function(){
+            return domReady.promise;
+        };
+    })();
+
+    (function(){
         // The following code only sets up the event on the objects
         // if .then() is called the first time.
         var freeze = Object.freeze||null;
@@ -284,7 +325,7 @@
                 var result = op.then.apply(op, arguments);
                 if(!attached){
                     attached = 1;
-                    listen(global, eventName, function(){
+                    uber.listen(global, eventName, function(){
                         deferred.resolve();
                     });
                 }
@@ -305,18 +346,21 @@
 
         // only pass back the promise so the deferreds can't
         // be modified
-        uber.domReady = function(){ return domReady.promise; };
         uber.unload = function(){ return unload.promise; };
         uber.beforeUnload = function(){ return beforeUnload.promise; };
-
     })();
-
 
     uber.preventDefault = preventDefault;
     uber.stopPropagation = stopPropagation;
     uber.stopEvent = stopEvent;
+
+    uber.normalizeEventName = normalizeEventName;
     uber.listen = listen;
     uber.stopListening = stopListening;
 
+    // overrides for functions in dom.js
+    uber.destroyElement = destroyElement;
+    uber.destroyDescendants = destroyDescendants;
+
 })(this);
-// We don't pass in uber to prevent IE from leaking on uber._eventData
+// We can't pass in uber to prevent IE from leaking on uber._eventData
