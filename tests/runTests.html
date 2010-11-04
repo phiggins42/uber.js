@@ -88,6 +88,7 @@
 
             // forIn should not skip toString (IE) and shouldn't double each key (Saf2)
             outputResult("forIn", count == 3);
+            outputResult("keys", uber.keys(obj2).length == 3);
 
             var obj3 = uber.create(obj2, {
                 prop1: "baz"
@@ -228,6 +229,13 @@
             aCalled = bCalled = false;
             input.click();
             outputResult("listen node, again", !aCalled && bCalled);
+
+            uber.stopListening(input, "onclick");
+            outputResult("stopListening", !uber._eventData[uber.getNodeId(input)][uber.normalizeEventName("onclick")]);
+
+            uber.listen(input, "onclick", function(){});
+            uber.destroyElement(input);
+            outputResult("destroyElement", !uber._eventData[uber.getNodeId(input)]);
         })();
 
     </script>

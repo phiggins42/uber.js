@@ -67,6 +67,8 @@
             return eventName.slice(0,2) != "on" ? "on" + eventName : eventName;
         };
     }
+    // This needs to be here for domReady
+    uber.normalizeEventName = normalizeEventName;
 
     if(hasAEL){
         // W3C
