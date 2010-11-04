@@ -61,12 +61,7 @@
         return false;
     }
 
-    var div = document.createElement("div"),
-        docEl = document.documentElement,
-        hasUniqueNumber = (typeof div.uniqueNumber == 'number' &&
-            docEl.uniqueNumber == 'number' &&
-            div.uniqueNumber != docEl.uniqueNumber),
-        NUMBER_PROP = hasUniqueNumber ? "uniqueNumber" : "_uberId",
+    var NUMBER_PROP = has("dom-uniquenumber") ? "uniqueNumber" : "_uberId",
         _nextNodeId = 2;
 
     function getNodeId(node){
@@ -92,10 +87,43 @@
         return id;
     }
 
+    // Adapted from FuseJS
+    var destroyElement, destroyDescendants,
+        PARENT_PROP = has("dom-parentelement") ? "parentElement" : "parentNode";
+    if(has("dom-innerhtml")){
+        // Prevent leaks using removeChild
+        destroyElement = (function(){
+            var trash = document.createElement('div');
+            function destroyElement(element){
+                trash.appendChild(element);
+                trash.innerHTML = '';
+            }
+            return destroyElement;
+        })();
+        destroyDescendants = function destroyDescendants(element){
+            element.innerHTML = '';
+        };
+    }else{
+        destroyElement = function destroyElement(element, parentNode){
+            parentNode = parentNode || element[PARENT_PROP];
+            if(parentNode){
+                parentNode.removeChild(element);
+            }
+        };
+        destroyDescendants = function destroyDescendants(element){
+            var child, de = uber.destroyElement;
+            while(child = element.lastChild){
+                de(child, element);
+            }
+        };
+    }
+
     uber.getWindow = getWindow;
     uber.getDocument = getDocument;
     uber.byId = byId;
     uber.isDescendant = isDescendant;
     uber.getNodeId = getNodeId;
+    uber.destroyElement = destroyElement;
+    uber.destroyDescendants = destroyDescendants;
 
 })(uber, has, document, this);
