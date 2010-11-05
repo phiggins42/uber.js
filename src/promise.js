@@ -7,7 +7,7 @@
     };
 
     function when(promiseOrValue, callback, errback, progressHandler){
-        if(promiseOrValue && uber.isFunction(promiseOrValue.then)){
+        if(promiseOrValue && (promiseOrValue instanceof uber.Promise || uber.isFunction(promiseOrValue.then))){
             return promiseOrValue.then(callback, errback, progressHandler);
         }
         return callback(promiseOrValue);

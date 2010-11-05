@@ -1,8 +1,7 @@
 (function(uber, has){
 
-    var FN = "function";
-
-    var freeze = Object.freeze || function(){};
+    var FN = "function",
+        freeze = Object.freeze || function(){};
 
     function Deferred(canceller){
         this.fired = -1;
@@ -122,6 +121,7 @@
     }
     Deferred.prototype = new uber.Promise;
     Deferred.prototype.constructor = Deferred;
+
     uber.Deferred = Deferred;
 
 })(uber, has);
