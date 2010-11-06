@@ -78,11 +78,16 @@
         setSelectable = function setSelectable(node, selectable){
             node.style[selectableProperty] = selectable ? trueValue : "none";
         };
-    }else if(has("dom-selectable")){
+    }else if(has("bug-properties-are-attributes")){
         setSelectable = function setSelectable(node, selectable){
-            var v = (node.unselectable = selectable ? "" : "on");
-            // TODO: figure this out
-            //d.query("*", node).forEach("item.unselectable = '"+v+"'");
+            var v = (node.unselectable = selectable ? "" : "on"),
+                element, elements = node.getElementsByTagName("*"), i = -1;
+
+            while(element = elements[++i]){
+                if(element.nodeType == 1){ // ELEMENT_NODE
+                    element.unselectable = v;
+                }
+            }
         };
     }else{
         setSelectable = function setSelectable(){

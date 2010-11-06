@@ -129,9 +129,9 @@
                 var prop = uber.getStyleProperty("userSelect");
                 uber.setSelectable(te, false);
                 outputResult("setSelectable", ist(te.style[prop], "none"));
-            }else if(has("dom-selectable")){
+            }else if(has("bug-properties-are-attributes")){
                 uber.setSelectable(te, false);
-                outputResult("setSelectable", ist(te.unselectable, "on"));
+                outputResult("setSelectable", typeof te.attributes.unselectable != "undefined" && ist(te.attributes.unselectable.value, "on"));
             }else{
                 outputResult("setSelectable", "n/a");
             }
