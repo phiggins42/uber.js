@@ -4,6 +4,12 @@
     <meta charset="utf-8">
     <title>Tests</title>
 
+    <style>
+        .error {
+            color: red;
+        }
+    </style>
+
     <script src="../has.js/has.js"></script>
     <script src="../has.js/detect/array.js"></script>
     <script src="../has.js/detect/strings.js"></script>
@@ -13,6 +19,7 @@
     <script src="../has.js/detect/function.js"></script>
     <script src="../has.js/detect/object.js"></script>
     <script src="../has.js/detect/events.js"></script>
+    <script src="../has.js/detect/features.js"></script>
     <script src="../uber.js"></script>
     <script src="../src/array.js"></script>
     <script src="../src/function.js"></script>
@@ -20,16 +27,238 @@
     <script src="../src/string.js"></script>
     <script src="../src/promise.js"></script>
     <script src="../src/deferred.js"></script>
+    <script src="../src/deferreds.js"></script>
     <script src="../src/dom.js"></script>
     <script src="../src/dom-event.js"></script>
     <script src="../src/html.js"></script>
     <script src="../src/dispatcher.js"></script>
     <script src="../src/pubsub.js"></script>
+    <script src="../src/xhr.js"></script>
 
     <script src="test.js"></script>
 
     <script>
-        uber.domReady().then(function(){ outputResult("domReady", true); });
+        function runTests(){
+            outputResult("indexOf", ist(uber.indexOf([1,2,2,3], 2), 1));
+            outputResult("lastIndexOf", ist(uber.lastIndexOf([1,2,2,3], 2), 2));
+            outputResult("every", ist(uber.every([1,1,1,1], function(a){ return a == 1; }), true));
+            outputResult("every, again", ist(uber.every([1,2,1,1], function(a){ return a == 1; }), false));
+            outputResult("every", ist(uber.some([1,2,3,4], function(a){ return a == 4; }), true));
+            outputResult("some, again", ist(uber.some([1,2,3,4], function(a){ return a == 5; }), false));
+            (function(){
+                var arr = [1,2,3];
+                arr[4] = 5;
+                var count = 0;
+                uber.forEach(arr, function(){
+                    count++;
+                });
+                // forEach should skip undefined values
+                outputResult("forEach", count == 4);
+            })();
+            outputResult("map", ist(uber.map([1,2,3,4], function(a){ return a + 1; }), [2,3,4,5]));
+            outputResult("filter", ist(uber.filter([1,2,3,4], function(a){ return a < 4; }), [1,2,3]));
+            outputResult("reduce", ist(uber.reduce([1,2,3,4], function(a, b){ return a + b; }), 10));
+            outputResult("reduceRight", ist(uber.reduceRight([1,2,3,4], function(a, b){ return a + b; }), 10));
+            (function(){
+                var obj1 = {
+                    prop: "foo"
+                };
+                var obj2 = {
+                    prop: "bar",
+                    method: function(arg){
+                        return arg ? (arg + " " + (this.prop||"none")) : this.prop;
+                    },
+                    toString: function(){
+                        return "obj2";
+                    }
+                };
+                var b1 = uber.bind(obj2.method, obj1);
+                var b2 = uber.bind(obj2.method, obj2, "foo");
+                outputResult("bind", ist(b1(), "foo"));
+                outputResult("bind, again", ist(b2(), "foo bar"));
+
+                var c1 = uber.curry(obj2.method, "foo");
+                outputResult("curry", ist(c1(), "foo none"));
+                outputResult("curry, again", ist(c1.call(obj1), "foo foo"));
+
+                var count = 0;
+                uber.forIn(obj2, function(){ count++; });
+
+                // forIn should not skip toString (IE) and shouldn't double each key (Saf2)
+                outputResult("forIn", count == 3);
+                outputResult("keys", uber.keys(obj2).length == 3);
+
+                var obj3 = uber.create(obj2, {
+                    prop1: "baz"
+                });
+                outputResult("hasKey", uber.hasKey(obj3, "prop1"));
+                outputResult("hasKey, again", !uber.hasKey(obj3, "method"));
+                outputResult("create", obj3.prop1 == "baz" && ("prop" in obj3) && obj3.prop == "bar");
+                obj2.prop = "blah";
+                outputResult("create, again", obj3.prop == "blah");
+            })();
+
+            outputResult("isArray", uber.isArray([]));
+            outputResult("isFunction", uber.isFunction(function(){}));
+            outputResult("isString", uber.isString(""));
+            outputResult("isNumber", uber.isNumber(1000));
+            outputResult("isNumber, again", !uber.isNumber(Infinity));
+            outputResult("isRegExp", uber.isRegExp(/^$/));
+
+            (function(){
+                var d = new uber.Deferred;
+                var a1, a2, a3, a4;
+                d.then(function(arg){ a1 = arg; return 2; }).then(function(arg){ a2 = arg; return 3; });
+                d.then(function(arg){ a3 = arg; return 4; });
+                uber.when(d, function(arg){ a4 = arg; });
+                d.resolve(1);
+
+                outputResult("deferred 1", a1 == 1);
+                outputResult("deferred 2", a2 == 2);
+                outputResult("deferred 3", a3 == 1);
+                outputResult("when", a4 == 1);
+            })();
+
+            outputResult("trim", ist(uber.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029"), 'asdf'));
+            outputResult("trim, again", ist(uber.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\uFEFFasdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF"), 'asdf\uFEFFasdf'));
+            var te = uber.byId("testelement");
+            outputResult("byId",  ist(uber.byId("testelement").id, "testelement"));
+            outputResult("getStyleProperty", ist(uber.getStyleProperty("border-color"), "borderColor"));
+
+            if(has("css-selectable")){
+                var prop = uber.getStyleProperty("userSelect");
+                uber.setSelectable(te, false);
+                outputResult("setSelectable", ist(te.style[prop], "none"));
+            }else if(has("dom-selectable")){
+                uber.setSelectable(te, false);
+                outputResult("setSelectable", ist(te.unselectable, "on"));
+            }else{
+                outputResult("setSelectable", "n/a");
+            }
+
+            if(has("css-opacity")){
+                var prop = uber.getStyleProperty("opacity");
+                uber.setOpacity(te, "0.5");
+                outputResult("setOpacity", ist(te.style[prop], "0.5"));
+                outputResult("getOpacity", ist(uber.getOpacity(te), "0.5"));
+            }else if(has("css-opacity-filter")){
+                uber.setOpacity(te, "0.5");
+                outputResult("setOpacity", ist(uber.getOpacity(te), 0.5));
+            }else{
+                outputResult("setOpacity", "n/a");
+            }
+
+            (function(){
+                var originalCalled, bCalled, cCalled;
+                originalCalled = bCalled = cCalled = false;
+                var a = { foo: function(){ originalCalled = true; return 1; } };
+                var b = uber.connect(a, "foo", function(){ bCalled = true; return 2; });
+                var c = uber.connect(a, "foo", function(){ cCalled = true; return 3; });
+
+                var res = a.foo();
+                outputResult("connect", res == 1 && originalCalled && bCalled && cCalled);
+
+                originalCalled = bCalled = cCalled = false;
+                b.pause();
+                a.foo();
+                outputResult("connect, again", originalCalled && !bCalled && cCalled);
+
+                originalCalled = bCalled = cCalled = false;
+                b.resume();
+                a.foo();
+                outputResult("connect, once more", originalCalled && bCalled && cCalled);
+
+                originalCalled = bCalled = cCalled = false;
+                b.cancel();
+                a.foo();
+                outputResult("connect, another time", originalCalled && !bCalled && cCalled);
+
+                originalCalled = bCalled = cCalled = false;
+                c.cancel();
+                a.foo();
+                outputResult("connect, one last time", originalCalled && !bCalled && !cCalled);
+            })();
+
+            (function(){
+                var aCalled, bCalled, cCalled, dCalled;
+                var a = uber.subscribe("some:foo", function(args){ aCalled = true; });
+                var b = uber.subscribe("some:foo", function(args){ bCalled = true; });
+                var c = uber.subscribe("some:foo", function(args){ cCalled = true; });
+                var d = uber.subscribe("some:other:foo", function(args){ dCalled = true; });
+
+                aCalled = bCalled = cCalled = dCalled = false;
+                uber.publish("some:foo");
+                outputResult("pubsub", aCalled && bCalled && cCalled && !dCalled);
+
+                aCalled = bCalled = cCalled = dCalled = false;
+                b.pause();
+                uber.publish("some:foo");
+                outputResult("pubsub, again", aCalled && !bCalled && cCalled && !dCalled);
+
+                aCalled = bCalled = cCalled = dCalled = false;
+                uber.publish("some:other:foo");
+                outputResult("pubsub, once more", !aCalled && !bCalled && !cCalled && dCalled);
+
+                aCalled = bCalled = cCalled = dCalled = false;
+                b.resume();
+                uber.publish("some:foo");
+                outputResult("pubsub, another time", aCalled && bCalled && cCalled && !dCalled);
+
+                aCalled = bCalled = cCalled = dCalled = false;
+                a.cancel();
+                b.cancel();
+                c.cancel();
+                uber.publish("some:foo");
+                outputResult("pubsub, one last time", !aCalled && !bCalled && !cCalled && !dCalled);
+            })();
+
+            (function(){
+                var input = uber.byId("test_input"), a, b, aCalled, bCalled;
+                aCalled = bCalled = false;
+                a = uber.listen(input, "onclick", function(evt){
+                    aCalled = uber.getEventTarget(evt) === input;
+                });
+                b = uber.listen(input, "onclick", function(evt){
+                    bCalled = uber.getEventTarget(evt) === input;
+                });
+                input.click();
+                outputResult("listen node", aCalled && bCalled);
+                a.pause();
+                aCalled = bCalled = false;
+                input.click();
+                outputResult("listen node, again", !aCalled && bCalled);
+
+                uber.stopListening(input, "onclick");
+                outputResult("stopListening", !uber._eventData[uber.getNodeId(input)][uber.normalizeEventName("onclick")]);
+
+                uber.listen(input, "onclick", function(){});
+                uber.destroyElement(input);
+                outputResult("destroyElement", !uber._eventData[uber.getNodeId(input)]);
+            })();
+
+            (function(){
+                var x1 = uber.xhr("GET", { url: "test.js" }),
+                    x2 = uber.xhr("GET", { url: "test.jss" }),
+                    x3 = uber.xhr("GET", { url: "test.js" });
+                x3.cancel();
+
+                var defs = new uber.Deferreds([x1,x2,x3]);
+
+                defs.then(
+                    function(res){
+                        outputResult("xhr", res[0][0] && res[0][1].status == 200 && res[0][1].responseText.slice(0, 10) == "(function(");
+                        outputResult("xhr, again", !res[1][0]);
+                        outputResult("xhr, once more", !res[2][0]);
+                    }
+                );
+            })();
+        }
+    </script>
+    <script>
+        uber.domReady().then(function(){
+            outputResult("domReady", true);
+            runTests();
+        });
     </script>
 </head>
 <body>
@@ -40,204 +269,5 @@
     <div style="display: none;">
         <input id="test_input" type="button">
     </div>
-    <script>
-        outputResult("indexOf", ist(uber.indexOf([1,2,2,3], 2), 1));
-        outputResult("lastIndexOf", ist(uber.lastIndexOf([1,2,2,3], 2), 2));
-        outputResult("every", ist(uber.every([1,1,1,1], function(a){ return a == 1; }), true));
-        outputResult("every, again", ist(uber.every([1,2,1,1], function(a){ return a == 1; }), false));
-        outputResult("every", ist(uber.some([1,2,3,4], function(a){ return a == 4; }), true));
-        outputResult("some, again", ist(uber.some([1,2,3,4], function(a){ return a == 5; }), false));
-        (function(){
-            var arr = [1,2,3];
-            arr[4] = 5;
-            var count = 0;
-            uber.forEach(arr, function(){
-                count++;
-            });
-            // forEach should skip undefined values
-            outputResult("forEach", count == 4);
-        })();
-        outputResult("map", ist(uber.map([1,2,3,4], function(a){ return a + 1; }), [2,3,4,5]));
-        outputResult("filter", ist(uber.filter([1,2,3,4], function(a){ return a < 4; }), [1,2,3]));
-        outputResult("reduce", ist(uber.reduce([1,2,3,4], function(a, b){ return a + b; }), 10));
-        outputResult("reduceRight", ist(uber.reduceRight([1,2,3,4], function(a, b){ return a + b; }), 10));
-        (function(){
-            var obj1 = {
-                prop: "foo"
-            };
-            var obj2 = {
-                prop: "bar",
-                method: function(arg){
-                    return arg ? (arg + " " + (this.prop||"none")) : this.prop;
-                },
-                toString: function(){
-                    return "obj2";
-                }
-            };
-            var b1 = uber.bind(obj2.method, obj1);
-            var b2 = uber.bind(obj2.method, obj2, "foo");
-            outputResult("bind", ist(b1(), "foo"));
-            outputResult("bind, again", ist(b2(), "foo bar"));
-
-            var c1 = uber.curry(obj2.method, "foo");
-            outputResult("curry", ist(c1(), "foo none"));
-            outputResult("curry, again", ist(c1.call(obj1), "foo foo"));
-
-            var count = 0;
-            uber.forIn(obj2, function(){ count++; });
-
-            // forIn should not skip toString (IE) and shouldn't double each key (Saf2)
-            outputResult("forIn", count == 3);
-            outputResult("keys", uber.keys(obj2).length == 3);
-
-            var obj3 = uber.create(obj2, {
-                prop1: "baz"
-            });
-            outputResult("hasKey", uber.hasKey(obj3, "prop1"));
-            outputResult("hasKey, again", !uber.hasKey(obj3, "method"));
-            outputResult("create", obj3.prop1 == "baz" && ("prop" in obj3) && obj3.prop == "bar");
-            obj2.prop = "blah";
-            outputResult("create, again", obj3.prop == "blah");
-        })();
-
-        outputResult("isArray", uber.isArray([]));
-        outputResult("isFunction", uber.isFunction(function(){}));
-        outputResult("isString", uber.isString(""));
-        outputResult("isNumber", uber.isNumber(1000));
-        outputResult("isNumber, again", !uber.isNumber(Infinity));
-        outputResult("isRegExp", uber.isRegExp(/^$/));
-
-        (function(){
-            var d = new uber.Deferred;
-            var a1, a2, a3, a4;
-            d.then(function(arg){ a1 = arg; return 2; }).then(function(arg){ a2 = arg; return 3; });
-            d.then(function(arg){ a3 = arg; return 4; });
-            uber.when(d, function(arg){ a4 = arg; });
-            d.resolve(1);
-
-            outputResult("deferred 1", a1 == 1);
-            outputResult("deferred 2", a2 == 2);
-            outputResult("deferred 3", a3 == 1);
-            outputResult("when", a4 == 1);
-        })();
-
-        outputResult("trim", ist(uber.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029"), 'asdf'));
-        outputResult("trim, again", ist(uber.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\uFEFFasdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF"), 'asdf\uFEFFasdf'));
-        outputResult("byId",  ist(uber.byId("testelement").id, "testelement"));
-        outputResult("getStyleProperty", ist(uber.getStyleProperty("border-color"), "borderColor"));
-
-        var te = uber.byId("testelement");
-        if(has("css-selectable")){
-            var prop = uber.getStyleProperty("userSelect");
-            uber.setSelectable(te, false);
-            outputResult("setSelectable", ist(te.style[prop], "none"));
-        }else if(has("dom-selectable")){
-            uber.setSelectable(te, false);
-            outputResult("setSelectable", ist(te.unselectable, "on"));
-        }else{
-            outputResult("setSelectable", "n/a");
-        }
-
-        if(has("css-opacity")){
-            var prop = uber.getStyleProperty("opacity");
-            uber.setOpacity(te, "0.5");
-            outputResult("setOpacity", ist(te.style[prop], "0.5"));
-            outputResult("getOpacity", ist(uber.getOpacity(te), "0.5"));
-        }else if(has("css-opacity-filter")){
-            uber.setOpacity(te, "0.5");
-            outputResult("setOpacity", ist(uber.getOpacity(te), 0.5));
-        }else{
-            outputResult("setOpacity", "n/a");
-        }
-
-        (function(){
-            var originalCalled, bCalled, cCalled;
-            originalCalled = bCalled = cCalled = false;
-            var a = { foo: function(){ originalCalled = true; return 1; } };
-            var b = uber.connect(a, "foo", function(){ bCalled = true; return 2; });
-            var c = uber.connect(a, "foo", function(){ cCalled = true; return 3; });
-
-            var res = a.foo();
-            outputResult("connect", res == 1 && originalCalled && bCalled && cCalled);
-
-            originalCalled = bCalled = cCalled = false;
-            b.pause();
-            a.foo();
-            outputResult("connect, again", originalCalled && !bCalled && cCalled);
-
-            originalCalled = bCalled = cCalled = false;
-            b.resume();
-            a.foo();
-            outputResult("connect, once more", originalCalled && bCalled && cCalled);
-
-            originalCalled = bCalled = cCalled = false;
-            b.cancel();
-            a.foo();
-            outputResult("connect, another time", originalCalled && !bCalled && cCalled);
-
-            originalCalled = bCalled = cCalled = false;
-            c.cancel();
-            a.foo();
-            outputResult("connect, one last time", originalCalled && !bCalled && !cCalled);
-        })();
-
-        (function(){
-            var aCalled, bCalled, cCalled, dCalled;
-            var a = uber.subscribe("some:foo", function(args){ aCalled = true; });
-            var b = uber.subscribe("some:foo", function(args){ bCalled = true; });
-            var c = uber.subscribe("some:foo", function(args){ cCalled = true; });
-            var d = uber.subscribe("some:other:foo", function(args){ dCalled = true; });
-
-            aCalled = bCalled = cCalled = dCalled = false;
-            uber.publish("some:foo");
-            outputResult("pubsub", aCalled && bCalled && cCalled && !dCalled);
-
-            aCalled = bCalled = cCalled = dCalled = false;
-            b.pause();
-            uber.publish("some:foo");
-            outputResult("pubsub, again", aCalled && !bCalled && cCalled && !dCalled);
-
-            aCalled = bCalled = cCalled = dCalled = false;
-            uber.publish("some:other:foo");
-            outputResult("pubsub, once more", !aCalled && !bCalled && !cCalled && dCalled);
-
-            aCalled = bCalled = cCalled = dCalled = false;
-            b.resume();
-            uber.publish("some:foo");
-            outputResult("pubsub, another time", aCalled && bCalled && cCalled && !dCalled);
-
-            aCalled = bCalled = cCalled = dCalled = false;
-            a.cancel();
-            b.cancel();
-            c.cancel();
-            uber.publish("some:foo");
-            outputResult("pubsub, one last time", !aCalled && !bCalled && !cCalled && !dCalled);
-        })();
-
-        (function(){
-            var input = uber.byId("test_input"), a, b, aCalled, bCalled;
-            aCalled = bCalled = false;
-            a = uber.listen(input, "onclick", function(){
-                aCalled = true;
-            });
-            b = uber.listen(input, "onclick", function(){
-                bCalled = true;
-            });
-            input.click();
-            outputResult("listen node", aCalled && bCalled);
-            a.pause();
-            aCalled = bCalled = false;
-            input.click();
-            outputResult("listen node, again", !aCalled && bCalled);
-
-            uber.stopListening(input, "onclick");
-            outputResult("stopListening", !uber._eventData[uber.getNodeId(input)][uber.normalizeEventName("onclick")]);
-
-            uber.listen(input, "onclick", function(){});
-            uber.destroyElement(input);
-            outputResult("destroyElement", !uber._eventData[uber.getNodeId(input)]);
-        })();
-
-    </script>
 </body>
 </html>

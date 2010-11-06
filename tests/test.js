@@ -34,6 +34,9 @@
             li = document.createElement("li");
 
         li.innerHTML = name + ": " + result;
+        if(!result){
+            li.className = "error";
+        }
         out.appendChild(li);
         li = null;
     }
