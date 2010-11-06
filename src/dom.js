@@ -21,12 +21,16 @@
     }
 
     var byId;
+    function testId(el, id, iht){
+        return ((iht(el, "attributes") && typeof el.attributes.id != "undefined" && el.attributes.id.value == id) || el.id == id);
+    }
     if(has("bug-getelementbyid-ids-names")||has("bug-getelementbyid-ignores-case")){
         byId = function byId(id, doc){
-            var _d = doc || document, te = _d.getElementById(id);
+            var _d = doc || document, te = _d.getElementById(id),
+                isHostType = uber.isHostType;
             // attributes.id.value is better than just id in case the 
             // user has a name=id inside a form
-            if(te && (te.attributes.id.value == id || te.id == id)){
+            if(te && testId(te, id, isHostType)){
                 return te;
             }else{
                 var eles = _d.all[id];
@@ -36,8 +40,7 @@
                 // if more than 1, choose first with the correct id
                 var i = 0;
                 while((te = eles[i++])){
-                    if((te.attributes && te.attributes.id && te.attributes.id.value == id)
-                    || te.id == id){
+                    if(testId(te, id, isHostType)){
                         return te;
                     }
                 }
@@ -118,6 +121,60 @@
         };
     }
 
+    function insertBefore(node, whereTo){
+        var parent = whereTo[PARENT_PROP];
+        if(parent){
+            parent.insertBefore(node, whereTo);
+        }
+        return node;
+    }
+
+    function insertAfter(node, whereTo){
+        var parent = whereTo[PARENT_PROP];
+        if(parent){
+            if(parent.lastChild === whereTo){
+                parent.appendChild(node);
+            }else{
+                parent.insertBefore(node, whereTo.nextSibling);
+            }
+        }
+        return node;
+    }
+
+    function insertFirst(node, newParent){
+        if(newParent.firstChild){
+            uber.insertBefore(node, newParent.firstChild);
+        }else{
+            newParent.appendChild(node);
+        }
+        return node;
+    }
+
+    function insertOnly(node, newParent){
+        uber.destroyDescendants(newParent);
+        newParent.appendChild(node);
+        return node;
+    }
+
+    function replaceNode(node, whereTo){
+        var parent = whereTo[PARENT_PROP];
+        if(parent){
+            parent.replaceChild(node, whereTo);
+        }
+        return node;
+    }
+
+    function insertAtIndex(node, newParent, index){
+        var cn = newParent.childNodes,
+            l = cn.length;
+        if(!l || l <= index){
+            newParent.appendChild(node);
+        }else{
+            uber.insertBefore(node, cn[index < 0 ? 0 : index]);
+        }
+        return node;
+    }
+
     uber.getWindow = getWindow;
     uber.getDocument = getDocument;
     uber.byId = byId;
@@ -125,5 +182,12 @@
     uber.getNodeId = getNodeId;
     uber.destroyElement = destroyElement;
     uber.destroyDescendants = destroyDescendants;
+
+    uber.insertBefore = insertBefore;
+    uber.insertAfter = insertAfter;
+    uber.insertFirst = insertFirst;
+    uber.insertOnly = insertOnly;
+    uber.replaceNode = replaceNode;
+    uber.insertAtIndex = insertAtIndex;
 
 })(uber, has, document, this);
