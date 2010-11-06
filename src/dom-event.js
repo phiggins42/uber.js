@@ -3,18 +3,8 @@
 
     if(!has("dom")){ return; }
 
-    var preventDefault, stopPropagation,
-        normalizeEventName, _listen, _stopListening
-
-    function _trySetKeyCode(evt, code){
-        try{
-            // squelch errors when keyCode is read-only
-            // (e.g. if keyCode is ctrl or shift)
-            return (evt.keyCode = code);
-        }catch(e){
-            return 0;
-        }
-    }
+    var preventDefault, stopPropagation, getEventTarget,
+        getRelatedTarget, normalizeEventName, _listen, _stopListening
 
     if(has("event-preventdefault")){
         preventDefault = function preventDefault(evt){
@@ -22,15 +12,6 @@
         };
     }else{
         preventDefault = function preventDefault(evt){
-            // Setting keyCode to 0 is the only way to prevent certain keypresses (namely
-            // ctrl-combinations that correspond to menu accelerator keys).
-            // Otoh, it prevents upstream listeners from getting this information
-            // Try to split the difference here by clobbering keyCode only for ctrl 
-            // combinations. If you still need to access the key upstream, bubbledKeyCode is
-            // provided as a workaround.
-            evt = evt || global.event;
-            evt.bubbledKeyCode = evt.keyCode;
-            if(evt.ctrlKey){ _trySetKeyCode(evt, 0); }
             evt.returnValue = false;
         };
     }
@@ -48,6 +29,33 @@
     function stopEvent(evt){
         uber.preventDefault(evt);
         uber.stopPropagation(evt);
+    }
+
+    if(has("event-srcelement")){
+        getEventTarget = function getEventTarget(evt){
+            return evt.srcElement;
+        };
+    }else{
+        getEventTarget = function getEventTarget(evt){
+            return evt.target;
+        };
+    }
+
+    if(has("event-relatedtarget")){
+        getRelatedTarget = function getRelatedTarget(evt){
+            return evt.relatedTarget;
+        };
+    }else{
+        getRelatedTarget = function getRelatedTarget(evt){
+            var target = uber.getEventTarget(evt),
+                node = null;
+            if(evt.type == "mouseover"){
+                node = evt.fromElement;
+            }else if(evt.type == "mouseout"){
+                node = evt.toElement;
+            }
+            return node;
+        };
     }
 
     var hasAEL = has("dom-addeventlistener");
@@ -127,13 +135,15 @@
 
         function createNodeDispatcher(nodeId, eventName){
             var nextId = 0;
-            function dispatcher(){
-                var data = uber._eventData[nodeId][eventName],
+            function dispatcher(evt){
+                var nodeData = uber._eventData[nodeId],
+                    data = nodeData[eventName],
+                    realEvent = evt || uber.getWindow(uber.getDocument(nodeData.__element)).event,
                     lls = data.listeners.slice(0), i, l;
 
                 for(i=0, l=lls.length; i<l; i++){
                     if((i in lls) && !lls[i].paused){
-                        lls[i].callback.apply(this, arguments);
+                        lls[i].callback.call(nodeData.__element, realEvent);
                     }
                 }
             }
@@ -164,7 +174,9 @@
             ed = uber._eventData, d;
 
         if(!(id in ed)){
-            ed[id] = {};
+            ed[id] = {
+                __element: obj
+            };
         }
         if(!(evtName in ed[id])){
             d = ed[id][evtName] = createNodeDispatcher(id, evtName);
@@ -192,45 +204,53 @@
         }
     }
 
-    function destroyElementData(element, recurse){
-        var id = uber.getNodeId(element),
-            data = uber._eventData[id],
-            sl = uber.stopListening;
+    (function(){
+        // This MUST be in a closure so listen and stopListening don't close around the
+        // variables in here.
+        function destroyElementData(element, recurse){
+            var id = uber.getNodeId(element),
+                data = uber._eventData[id],
+                sl = uber.stopListening;
 
-        if(data){
-            // This is to keep element out of a closure using forIn
-            var keys = uber.keys(data);
-            for(var i=keys.length; i--;){
-                _stopListening(element, keys[i], data[keys[i]].dispatcher, id);
-                delete data[keys[i]];
+            if(data){
+                // This is to keep element out of a closure using forIn
+                var keys = uber.keys(data);
+                for(var i=keys.length; i--;){
+                    _stopListening(element, keys[i], data[keys[i]].dispatcher, id);
+                    delete data[keys[i]];
+                }
+            }
+            if(recurse){
+                destroyDescendantData(element);
+            }
+            delete uber._eventData[id];
+        }
+        function destroyDescendantData(element){
+            var i = -1, elements = element.getElementsByTagName("*");
+
+            while(element = elements[++i]){
+                if(element.nodeType == 1){ // ELEMENT_NODE
+                    destroyElementData(element, false);
+                }
             }
         }
-        if(recurse){
+
+        var oldDestroyElement = uber.destroyElement;
+        function destroyElement(element, parent){
+            destroyElementData(element, true);
+            oldDestroyElement(element, parent);
+        }
+
+        var oldDestroyDescendants = uber.destroyDescendants;
+        function destroyDescendants(element){
             destroyDescendantData(element);
+            oldDestroyDescendants(element);
         }
-        delete uber._eventData[id];
-    }
-    function destroyDescendantData(element){
-        var i = -1, elements = element.getElementsByTagName("*");
 
-        while(element = elements[++i]){
-            if(element.nodeType == ELEMENT_NODE){
-                destroyElementData(element, false);
-            }
-        }
-    }
-
-    var oldDestroyElement = uber.destroyElement;
-    function destroyElement(element, parent){
-        destroyElementData(element, true);
-        oldDestroyElement(element, parent);
-    }
-
-    var oldDestroyDescendants = uber.destroyDescendants;
-    function destroyDescendants(element){
-        destroyDescendantData(element);
-        oldDestroyDescendants(element);
-    }
+        // overrides for functions in dom.js
+        uber.destroyElement = destroyElement;
+        uber.destroyDescendants = destroyDescendants;
+    })();
 
     uber.domReady = (function(){
         // This MUST be in a closure so listen and stopListening don't close around the
@@ -263,24 +283,22 @@
 
             domReady.resolve();
         }
+        var checkDOMReady = function(evt){
+            if(isLoaded){
+                if(pollerTO){
+                    clearTimeout(pollerTO);
+                }
+            }else if(evt){
+                if(evt.type == "DOMContentLoaded"){
+                    onDOMReady();
+                }else if(documentReadyStates[document.readyState]){
+                    onDOMReady();
+                }
+            }
+        };
         function poller(){
             if(isLoaded){ return; }
-            // doScroll will not throw an error when in an iframe
-            // so we rely on the event system to fire the domReady event
-            // before the window onload in IE6/7
-            if(doScrollCheck){
-                try {
-                    div.doScroll();
-                    //console.log("scroll ready");
-                    onDOMReady();
-                    return;
-                } catch(e) { }
-            }
-            if(documentReadyStates[document.readyState]){
-                //console.log("readystate poll ready");
-                onDOMReady();
-                return;
-            }
+            checkDOMReady();
             pollerTO = setTimeout(poller, 30);
         }
 
@@ -291,16 +309,33 @@
             // and either connect to "DOMContentLoaded" or poll for div.doScroll.
             // First one fired wins.
             if(hasAEL){
-                listen(document, "DOMContentLoaded", onDOMReady);
+                listen(document, "DOMContentLoaded", checkDOMReady);
             }else if(has("dom-element-do-scroll")){
                 // Avoid a potential browser hang when checking window.top (thanks Rich Dougherty)
                 // The value of frameElement can be null or an object.
                 // Checking window.frameElement could throw if not accessible.
                 try { doScrollCheck = global.frameElement == null; } catch(e) { }
+
+                checkDOMReady = function(){
+                    if(isLoaded){
+                        if(pollerTO){
+                            clearTimeout(pollerTO);
+                        }
+                    }
+                    // doScroll will not throw an error when in an iframe
+                    // so we rely on the event system to fire the domReady event
+                    // before the window onload in IE6/7
+                    if(doScrollCheck){
+                        try{
+                            div.doScroll();
+                        }catch(e){ return; }
+                        onDOMReady();
+                    }
+                };
             }
 
-            listen(global, "load", onDOMReady);
-            listen(document, "readystatechange", onDOMReady);
+            listen(global, "load", checkDOMReady);
+            listen(document, "readystatechange", checkDOMReady);
 
             // Derived with permission from Diego Perini's IEContentLoaded
             // http://javascript.nwbox.com/IEContentLoaded/
@@ -356,13 +391,12 @@
     uber.stopPropagation = stopPropagation;
     uber.stopEvent = stopEvent;
 
+    uber.getEventTarget = getEventTarget;
+    uber.getRelatedTarget = getRelatedTarget;
+
     uber.normalizeEventName = normalizeEventName;
     uber.listen = listen;
     uber.stopListening = stopListening;
-
-    // overrides for functions in dom.js
-    uber.destroyElement = destroyElement;
-    uber.destroyDescendants = destroyDescendants;
 
 })(this);
 // We can't pass in uber to prevent IE from leaking on uber._eventData
