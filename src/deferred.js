@@ -62,7 +62,9 @@
             complete(error);
             this.results = [null, error];
             if(!error || error.log !== false){
-                console.error(error);
+                if(typeof console != "undefined"){
+                    console.error(error);
+                }
             }
         }
 
