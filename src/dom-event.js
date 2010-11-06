@@ -190,6 +190,8 @@
     }
 
     function stopListening(obj, eventName){
+        if(eventName == "__element"){ return; }
+
         var win;
         if(!obj.nodeType&&obj!=global){
             throw new Error();
@@ -214,10 +216,13 @@
 
             if(data){
                 // This is to keep element out of a closure using forIn
-                var keys = uber.keys(data);
+                var keys = uber.keys(data),
+                    key;
                 for(var i=keys.length; i--;){
-                    _stopListening(element, keys[i], data[keys[i]].dispatcher, id);
-                    delete data[keys[i]];
+                    key = keys[i];
+                    if(key == "__element"){ continue; }
+                    _stopListening(element, key, data[key].dispatcher, id);
+                    delete data[key];
                 }
             }
             if(recurse){
