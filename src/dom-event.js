@@ -75,7 +75,7 @@
             return eventName.slice(0,2) != "on" ? "on" + eventName : eventName;
         };
     }
-    // This needs to be here for domReady
+    // This needs to be here for listen in domReady
     uber.normalizeEventName = normalizeEventName;
 
     if(hasAEL){
