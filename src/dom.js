@@ -1,6 +1,8 @@
 (function(uber, has, document, global){
     if(!has("dom")){ return; }
 
+    var byId, getNodeName, destroyElement, destroyDescendants;
+
     function getDocument(element){
         // based on work by John-David Dalton
         return element.ownerDocument || element.document ||
@@ -9,7 +11,7 @@
 
     function getWindow(element){
         // based on work by Diego Perini and John-David Dalton
-        var frame, i = -1, doc = getDocument(element), frames = global.frames;
+        var frame, i = -1, doc = uber.getDocument(element), frames = global.frames;
         if(document != doc){
             while(frame = frames[++i]){
                 if(frame.document == doc){
@@ -20,10 +22,10 @@
         return global;
     }
 
-    var byId;
-    function testId(el, id, iht){
+    function testId(el, id, iht /* isHostType */){
         return ((iht(el, "attributes") && typeof el.attributes.id != "undefined" && el.attributes.id.value == id) || el.id == id);
     }
+
     if(has("bug-getelementbyid-ids-names")||has("bug-getelementbyid-ignores-case")){
         byId = function byId(id, doc){
             var _d = doc || document, te = _d.getElementById(id),
@@ -90,9 +92,22 @@
         return id;
     }
 
+    var PARENT_PROP = has("dom-parentelement") ? "parentElement" : "parentNode";
+    function getParentNode(node){
+        return node[PARENT_PROP];
+    }
+
+    if(has("dom-tagname-uppercase")){
+        getNodeName = function getNodeName(node){
+            return node.nodeName;
+        };
+    }else{
+        getNodeName = function getNodeName(node){
+            return node.nodeName.toUpperCase();
+        };
+    }
+
     // Adapted from FuseJS
-    var destroyElement, destroyDescendants,
-        PARENT_PROP = has("dom-parentelement") ? "parentElement" : "parentNode";
     if(has("dom-innerhtml")){
         // Prevent leaks using removeChild
         destroyElement = (function(){
@@ -108,7 +123,7 @@
         };
     }else{
         destroyElement = function destroyElement(element, parentNode){
-            parentNode = parentNode || element[PARENT_PROP];
+            parentNode = parentNode || uber.getParentNode(element);
             if(parentNode){
                 parentNode.removeChild(element);
             }
@@ -122,7 +137,7 @@
     }
 
     function insertBefore(node, whereTo){
-        var parent = whereTo[PARENT_PROP];
+        var parent = uber.getParentNode(element);
         if(parent){
             parent.insertBefore(node, whereTo);
         }
@@ -130,7 +145,7 @@
     }
 
     function insertAfter(node, whereTo){
-        var parent = whereTo[PARENT_PROP];
+        var parent = uber.getParentNode(element);
         if(parent){
             if(parent.lastChild === whereTo){
                 parent.appendChild(node);
@@ -157,7 +172,7 @@
     }
 
     function replaceNode(node, whereTo){
-        var parent = whereTo[PARENT_PROP];
+        var parent = uber.getParentNode(element);
         if(parent){
             parent.replaceChild(node, whereTo);
         }
@@ -180,6 +195,8 @@
     uber.byId = byId;
     uber.isDescendant = isDescendant;
     uber.getNodeId = getNodeId;
+    uber.getParentNode = getParentNode;
+    uber.getNodeName = getNodeName;
     uber.destroyElement = destroyElement;
     uber.destroyDescendants = destroyDescendants;
 
