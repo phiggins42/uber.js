@@ -33,7 +33,7 @@
         var out = uber.byId("output"),
             li = document.createElement("li");
 
-        li.innerHTML = name + ": " + result;
+        li.innerHTML = name + ": " + (result === true ? "pass" : (result === false ? "fail" : result));
         if(!result){
             li.className = "error";
         }
