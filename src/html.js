@@ -2,7 +2,8 @@
 
     var STR = "string",
         getComputedStyle, getStyleName,
-        setSelectable, setOpacity, getOpacity
+        setSelectable, setOpacity, getOpacity,
+        domComputedStyle = has("dom-computed-style")
     ;
 
     uber.boxModel = has("css-content-box") ? "content-box" : "border-box";
@@ -11,33 +12,19 @@
     if(has("dom-current-style")){
         getComputedStyle = function getComputedStyle(node){
             // IE (as of 7) doesn't expose Element like sane browsers
-            return node.nodeType == 1 /* ELEMENT_NODE*/ ? node.currentStyle : {};
+            return node.currentStyle;
         };
-    }else if(has("dom-computed-style")){
-        if(has("bug-computed-style-hidden-zero-height")){
-            getComputedStyle = function getComputedStyle(node){
-                var s;
-                if(node.nodeType == 1){
-                    var dv = node.ownerDocument.defaultView;
-                    s = dv.getComputedStyle(node, null);
-                    if(!s && node.style){
-                        var d = node.style.display;
-                        node.style.display = "";
-                        s = dv.getComputedStyle(node, null);
-                        node.style.display = d;
-                    }
-                }
-                return s || {};
-            };
-        }else{
-            getComputedStyle = function getComputedStyle(node){
-                return node.nodeType == 1 ?
-                    node.ownerDocument.defaultView.getComputedStyle(node, null) : {};
-            };
-        }
+    }else if(domComputedStyle){
+        getComputedStyle = function getComputedStyle(node){
+            return node.ownerDocument.defaultView.getComputedStyle(node, null);
+        };
+    }else{
+        getComputedStyle = function getComputedStyle(node){
+            return node.style;
+        };
     }
 
-    var getStyleName = (function(){
+    getStyleName = (function(){
         var testElem = document.createElement("div"),
             prefixes = ['Khtml', 'ms', 'O', 'Moz', 'Webkit'],
             dashRE = /-([a-z])/ig,
@@ -79,13 +66,13 @@
     })();
 
     if(has("css-selectable")){
-        var selectableProperty = getStyleProperty("userSelect"),
+        var selectableName = getStyleName("userSelect"),
             trueValue = "";
-        if(/^(Khtml|Webkit)/.test(selectableProperty)){
+        if(/^(Khtml|Webkit)/.test(selectableName)){
             trueValue = "auto";
         }
         setSelectable = function setSelectable(node, selectable){
-            node.style[selectableProperty] = selectable ? trueValue : "none";
+            node.style[selectableName] = selectable ? trueValue : "none";
         };
     }else if(has("bug-properties-are-attributes")){
         setSelectable = function setSelectable(node, selectable){
@@ -100,7 +87,7 @@
         };
     }else{
         setSelectable = function setSelectable(){
-            throw new Error();
+            /* do nothing */
         }
     }
 
@@ -112,33 +99,34 @@
             return f ? {} : null;
         }
     };
-    if(has("css-opacity")){
-        var opacityProp = getStyleProperty("opacity");
-        setOpacity = function setOpacity(node, value){
-            return node.style[opacityProp] = value;
-        };
-        getOpacity = function getOpacity(node){
-            return getComputedStyle(node).opacity;
-        };
-    }else if(has("css-opacity-filter")){
-        setOpacity = function setOpacity(node, value){
-            var ov = value * 100, opaque = value == 1;
-            node.style.zoom = opaque ? "" : 1;
 
-            if(!af(node)){
-                if(opaque){
-                    return value;
-                }
-                node.style.filter += " progid:" + astr + "(Opacity=" + ov + ")";
-            }else{
-                af(node, 1).Opacity = ov;
+    var opacityProp = getStyleName("opacity");
+    if(has("css-opacity-filter")){
+        setOpacity = function setOpacity(node, value){
+            var ov = value * 100,
+                opaque = value == 1,
+                item = !node.filters.length ? null : af(node),
+                nodeStyle = node.style,
+                curStyle = node.currentStyle || nodeStyle;
+
+            if(!item && !opaque){
+                nodeStyle.filter += " progid:" + astr + "(Opacity=" + ov + ")";
+                item = af(node);
             }
 
-            // on IE7 Alpha(Filter opacity=100) makes text look fuzzy so disable it altogether (Dojo bug #2661),
-            //but still update the opacity value so we can get a correct reading if it is read later.
-            af(node, 1).Enabled = !opaque;
+            if(item){
+                // only modify the zoom value if we need to force layout
+                if(!opaque && !((curStyle && curStyle.hasLayout) || (curStyle && curStyle.zoom != "normal"))){
+                    nodeStyle.zoom = 1;
+                }
+                item.Opacity = ov;
 
-            if(node.nodeName.toLowerCase() == "tr"){
+                // on IE7 Alpha(Filter opacity=100) makes text look fuzzy so disable it altogether (Dojo bug #2661),
+                //but still update the opacity value so we can get a correct reading if it is read later.
+                item.Enabled = !opaque;
+            }
+
+            if(uber.getNodeName(node) == "TR"){
                 for(var i=node.cells.length; i--;){
                     uber.setOpacity(node.cells[i], value);
                 }
@@ -149,12 +137,33 @@
             try{
                 return af(node).Opacity / 100;
             }catch(e){
-                return 1;
+                return 1.0;
             }
         };
+    }else if(!opacityProp){
+        // Do nothing
+        setOpacity = function setOpacity(){ return 1.0; };
+        getOpacity = function getOpacity(){ return 1.0; };
+        setOpacity = function setOpacity(node, value){
+            return node.style[opacityProp] = value;
+        };
+        getOpacity = function getOpacity(node){
+            return getComputedStyle(node).opacity;
+        };
     }else{
-        setOpacity = function setOpacity(){ throw new Error(); };
-        getOpacity = function getOpacity(){ throw new Error(); };
+        setOpacity = function setOpacity(node, value){
+            return node.style[opacityProp] = value;
+        };
+        if(domComputedStyle){
+            getOpacity = function getOpacity(node){
+                var cs = uber.getComputedStyle(node);
+                return parseFloat(node.style[opacityProp] || (cs && cs[opacityProp]) || 1.0);
+            };
+        }else{
+            getOpacity = function getOpacity(node){
+                return parseFloat(node.style[opacityProp] || 1.0);
+            };
+        }
     }
 
     uber.getComputedStyle = getComputedStyle;
