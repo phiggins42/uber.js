@@ -160,10 +160,48 @@
         }
     }
 
+    var _isVisible = (function(){
+        var isVisible;
+        if(domComputedStyle){
+            isVisible = function isVisible(node){
+                var cs = uber.getComputedStyle(node);
+                return !!(cs && (node.offsetHeight || node.offsetWidth));
+            };
+        }else{
+            isVisible = function isVisible(node){
+                var cs = uber.getComputedStyle(node);
+                return cs !== null && (cs || node.style).display != "none" &&
+                    !!(node.offsetWidth || node.offsetHeight);
+            };
+        }
+        return isVisible;
+    })();
+
+    var tableElements = { 'THEAD': 1, 'TBODY': 1, 'TR': 1 };
+    var isVisible = (function(){
+        // Adapted from FuseJS
+        function isVisible(node){
+            if(_isVisible(node)){
+                var name = uber.getNodeName(node);
+                if(tableElements[name] && (node = uber.getParentNode(node))){
+                    return uber.isVisible(node);
+                }
+                return true;
+            }
+        }
+        if(has("bug-table-elements-retain-offset-dimentions-when-hidden")){
+            // IE7 and lower
+            return isVisible;
+        }else{
+            return _isVisible;
+        }
+    })();
+
     uber.getComputedStyle = getComputedStyle;
     uber.getStyleName = getStyleName;
     uber.setSelectable = setSelectable;
     uber.setOpacity = setOpacity;
     uber.getOpacity = getOpacity;
+    uber.isVisible = isVisible;
 
 })(uber, has, document);
