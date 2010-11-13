@@ -1,84 +1,12 @@
 (function(global){
-    // We can't pass in uber to prevent IE from leaking on uber._eventData
+    // This is in a separate closure from the rest of this file to keep
+    // the functions in here from closing around something that could
+    // cause a leak.
+    // We can't pass in uber to prevent IE from accessing uber from
+    // an activation object in the scope chain.
+    var _listen, _stopListening;
 
-    if(!has("dom")){ return; }
-
-    var preventDefault, stopPropagation, getEventTarget,
-        getRelatedTarget, normalizeEventName, _listen, _stopListening
-
-    if(has("event-preventdefault")){
-        preventDefault = function preventDefault(evt){
-            evt.preventDefault();
-        };
-    }else{
-        preventDefault = function preventDefault(evt){
-            evt.returnValue = false;
-        };
-    }
-
-    if(has("event-stoppropagation")){
-        stopPropagation = function stopPropagation(evt){
-            evt.stopPropagation();
-        };
-    }else{
-        stopPropagation = function stopPropagation(evt){
-            evt.cancelBubble = true;
-        };
-    }
-
-    function stopEvent(evt){
-        uber.preventDefault(evt);
-        uber.stopPropagation(evt);
-    }
-
-    if(has("event-srcelement")){
-        getEventTarget = function getEventTarget(evt){
-            return evt.srcElement;
-        };
-    }else{
-        getEventTarget = function getEventTarget(evt){
-            return evt.target;
-        };
-    }
-
-    if(has("event-relatedtarget")){
-        getRelatedTarget = function getRelatedTarget(evt){
-            return evt.relatedTarget;
-        };
-    }else{
-        getRelatedTarget = function getRelatedTarget(evt){
-            var target = uber.getEventTarget(evt),
-                node = null;
-            if(evt.type == "mouseover"){
-                node = evt.fromElement;
-            }else if(evt.type == "mouseout"){
-                node = evt.toElement;
-            }
-            return node;
-        };
-    }
-
-    var hasAEL = has("dom-addeventlistener");
-
-    if(hasAEL){
-        normalizeEventName = function normalizeEventName(/*String*/ name){
-            // Generally, name should be lower case, unless it is special
-            // somehow (e.g. a Mozilla DOM event).
-            // Remove 'on'.
-            return name.slice(0,2) =="on" ? name.slice(2) : name;
-        };
-    }else{
-        normalizeEventName = function normalizeEventName(/*String*/ eventName){
-            // Generally, eventName should be lower case, unless it is
-            // special somehow (e.g. a Mozilla event)
-            // ensure 'on'
-            return eventName.slice(0,2) != "on" ? "on" + eventName : eventName;
-        };
-    }
-    // This needs to be here for listen in domReady
-    uber.normalizeEventName = normalizeEventName;
-
-    if(hasAEL){
+    if(has("dom-addeventlistener")){
         // W3C
         _listen = function _listen(obj, eventName, func){
             obj.addEventListener(eventName, func, false);
@@ -206,40 +134,126 @@
         }
     }
 
+    uber._listen = _listen;
+    uber._stopListening = _stopListening;
+
+    uber.listen = listen;
+    uber.stopListening = stopListening;
+
+// We can't pass in uber to prevent IE from accessing uber from
+// an activation object in the scope chain
+})(this);
+
+(function(global, uber){
+    if(!has("dom")){ return; }
+
+    var preventDefault, stopPropagation, getEventTarget,
+        getRelatedTarget, normalizeEventName;
+
+    if(has("event-preventdefault")){
+        preventDefault = function preventDefault(evt){
+            evt.preventDefault();
+        };
+    }else{
+        preventDefault = function preventDefault(evt){
+            evt.returnValue = false;
+        };
+    }
+
+    if(has("event-stoppropagation")){
+        stopPropagation = function stopPropagation(evt){
+            evt.stopPropagation();
+        };
+    }else{
+        stopPropagation = function stopPropagation(evt){
+            evt.cancelBubble = true;
+        };
+    }
+
+    function stopEvent(evt){
+        uber.preventDefault(evt);
+        uber.stopPropagation(evt);
+    }
+
+    if(has("event-srcelement")){
+        getEventTarget = function getEventTarget(evt){
+            return evt.srcElement;
+        };
+    }else{
+        getEventTarget = function getEventTarget(evt){
+            return evt.target;
+        };
+    }
+
+    if(has("event-relatedtarget")){
+        getRelatedTarget = function getRelatedTarget(evt){
+            return evt.relatedTarget;
+        };
+    }else{
+        getRelatedTarget = function getRelatedTarget(evt){
+            var target = uber.getEventTarget(evt),
+                node = null;
+            if(evt.type == "mouseover"){
+                node = evt.fromElement;
+            }else if(evt.type == "mouseout"){
+                node = evt.toElement;
+            }
+            return node;
+        };
+    }
+
+    var hasAEL = has("dom-addeventlistener");
+
+    if(hasAEL){
+        normalizeEventName = function normalizeEventName(/*String*/ name){
+            // Generally, name should be lower case, unless it is special
+            // somehow (e.g. a Mozilla DOM event).
+            // Remove 'on'.
+            return name.slice(0,2) =="on" ? name.slice(2) : name;
+        };
+    }else{
+        normalizeEventName = function normalizeEventName(/*String*/ eventName){
+            // Generally, eventName should be lower case, unless it is
+            // special somehow (e.g. a Mozilla event)
+            // ensure 'on'
+            return eventName.slice(0,2) != "on" ? "on" + eventName : eventName;
+        };
+    }
+    // This needs to be here for listen in domReady
+    uber.normalizeEventName = normalizeEventName;
+
+    function destroyElementData(element, recurse){
+        var id = uber.getNodeId(element),
+            data = uber._eventData[id],
+            sl = uber.stopListening;
+
+        if(data){
+            // This is to keep element out of a closure using forIn
+            var keys = uber.keys(data),
+                key;
+            for(var i=keys.length; i--;){
+                key = keys[i];
+                if(key == "__element"){ continue; }
+                uber._stopListening(element, key, data[key].dispatcher, id);
+                delete data[key];
+            }
+        }
+        if(recurse){
+            destroyDescendantData(element);
+        }
+        delete uber._eventData[id];
+    }
+    function destroyDescendantData(element){
+        var i = -1, elements = element.getElementsByTagName("*");
+
+        while(element = elements[++i]){
+            if(element.nodeType == 1){ // ELEMENT_NODE
+                destroyElementData(element, false);
+            }
+        }
+    }
+
     (function(){
-        // This MUST be in a closure so listen and stopListening don't close around the
-        // variables in here.
-        function destroyElementData(element, recurse){
-            var id = uber.getNodeId(element),
-                data = uber._eventData[id],
-                sl = uber.stopListening;
-
-            if(data){
-                // This is to keep element out of a closure using forIn
-                var keys = uber.keys(data),
-                    key;
-                for(var i=keys.length; i--;){
-                    key = keys[i];
-                    if(key == "__element"){ continue; }
-                    _stopListening(element, key, data[key].dispatcher, id);
-                    delete data[key];
-                }
-            }
-            if(recurse){
-                destroyDescendantData(element);
-            }
-            delete uber._eventData[id];
-        }
-        function destroyDescendantData(element){
-            var i = -1, elements = element.getElementsByTagName("*");
-
-            while(element = elements[++i]){
-                if(element.nodeType == 1){ // ELEMENT_NODE
-                    destroyElementData(element, false);
-                }
-            }
-        }
-
         var oldDestroyElement = uber.destroyElement;
         function destroyElement(element, parent){
             destroyElementData(element, true);
@@ -258,8 +272,7 @@
     })();
 
     uber.domReady = (function(){
-        // This MUST be in a closure so listen and stopListening don't close around the
-        // variables in here.
+        // This is in a closure to keep the variables in here from being seen.
         var domReady = new uber.Deferred(),
             documentReadyStates = { "loaded": 1, "interactive": 1, "complete": 1 },
             fixReadyState = typeof document.readyState != "string",
@@ -314,7 +327,7 @@
             // and either connect to "DOMContentLoaded" or poll for div.doScroll.
             // First one fired wins.
             if(hasAEL){
-                listen(document, "DOMContentLoaded", checkDOMReady);
+                uber.listen(document, "DOMContentLoaded", checkDOMReady);
             }else if(has("dom-element-do-scroll")){
                 // Avoid a potential browser hang when checking window.top (thanks Rich Dougherty)
                 // The value of frameElement can be null or an object.
@@ -339,8 +352,8 @@
                 };
             }
 
-            listen(global, "load", checkDOMReady);
-            listen(document, "readystatechange", checkDOMReady);
+            uber.listen(global, "load", checkDOMReady);
+            uber.listen(document, "readystatechange", checkDOMReady);
 
             // Derived with permission from Diego Perini's IEContentLoaded
             // http://javascript.nwbox.com/IEContentLoaded/
@@ -400,8 +413,5 @@
     uber.getRelatedTarget = getRelatedTarget;
 
     uber.normalizeEventName = normalizeEventName;
-    uber.listen = listen;
-    uber.stopListening = stopListening;
 
-})(this);
-// We can't pass in uber to prevent IE from leaking on uber._eventData
+})(this, uber);
