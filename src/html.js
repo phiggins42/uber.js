@@ -144,12 +144,6 @@
         // Do nothing
         setOpacity = function setOpacity(){ return 1.0; };
         getOpacity = function getOpacity(){ return 1.0; };
-        setOpacity = function setOpacity(node, value){
-            return node.style[opacityProp] = value;
-        };
-        getOpacity = function getOpacity(node){
-            return getComputedStyle(node).opacity;
-        };
     }else{
         setOpacity = function setOpacity(node, value){
             return node.style[opacityProp] = value;
