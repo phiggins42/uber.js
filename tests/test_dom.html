@@ -31,66 +31,88 @@
     <script src="test.js"></script>
 
     <script>
-        function runTests(){
-            var te = uber.byId("testelement"),
+        (function(){
+            var te, container;
+            registerTest("getDocument", function(){
+                te = uber.byId("testelement");
                 container = uber.byId("container");
+                return isEqual(uber.getDocument(te), uber.getDocument(container));
+            });
+            registerTest("getWindow", function(){
+                return isEqual(uber.getWindow(te), uber.getWindow(container))
+            });
+            registerTest("byId", function(){
+                return te.id == "testelement";
+            });
+            registerTest("isDescendant", function(){
+                return uber.isDescendant(uber.byId("child"), container);
+            });
+            registerTest("destroyElement", function(){
+                uber.destroyElement(uber.byId("child"));
+                return !uber.byId("child");
+            });
+            registerTest("destroyDescendants", function(){
+                uber.destroyDescendants(uber.byId("destroy_container"));
+                return !uber.byId("destroy_child");
+            });
 
-            outputResult("getDocument", ist(uber.getDocument(te), uber.getDocument(container)));
-            outputResult("getWindow", ist(uber.getWindow(te), uber.getWindow(container)));
-            outputResult("byId",  ist(te.id, "testelement"));
-            outputResult("isDescendant", ist(uber.isDescendant(uber.byId("child"), container), true));
+            var child1, child2, child3, child4, child5, child6, child7;
 
-            uber.destroyElement(uber.byId("child"));
-            outputResult("destroyElement", !uber.byId("child"));
-
-            uber.destroyDescendants(uber.byId("destroy_container"));
-            outputResult("destroyDescendants", !uber.byId("destroy_child"));
-
-            var child1 = document.createElement("div");
-            container.appendChild(child1);
-
-            var child2 = document.createElement("div");
-            uber.insertBefore(child2, child1);
-            outputResult("insertBefore", child2 === container.firstChild);
-
-            var child3 = document.createElement("div");
-            uber.insertBefore(child3, child1);
-            outputResult("insertBefore, again", child3 === child2.nextSibling);
-
-            var child4 = document.createElement("div");
-            uber.insertAfter(child4, child2);
-            outputResult("insertAfter", child4 === child2.nextSibling);
-
-            var child5 = document.createElement("div");
-            uber.insertAfter(child5, child1);
-            outputResult("insertAfter, again", child5 === container.lastChild);
-
-            var child6 = document.createElement("div");
-            uber.insertFirst(child6, container);
-            outputResult("insertFirst", child6 === container.firstChild && child6.nextSibling === child2);
-
-            var child7 = document.createElement("div");
-            uber.insertOnly(child7, container);
-            outputResult("insertOnly", child7 === container.firstChild && child7 === container.lastChild);
-
-            uber.replaceNode(child1, child7);
-            outputResult("replaceNode", child1 === container.firstChild && child1 === container.lastChild);
-
-            uber.insertAtIndex(child2, container, 0);
-            outputResult("insertAtIndex", child2 === container.firstChild && child2.nextSibling === child1);
-
-            uber.insertAtIndex(child3, container, 17);
-            outputResult("insertAtIndex, again", child3 === container.lastChild && child1.nextSibling === child3);
-
-            uber.insertAtIndex(child4, container, 1);
-            outputResult("insertAtIndex, once more", child2.nextSibling === child4 && child4.nextSibling === child1);
-        }
-    </script>
-    <script>
-        uber.domReady().then(function(){
-            outputResult("domReady", true);
-            runTests();
-        });
+            registerTests("insertBefore", [
+                function(){
+                    child1 = document.createElement("div");
+                    container.appendChild(child1);
+                    child2 = document.createElement("div");
+                    uber.insertBefore(child2, child1);
+                    return child2 === container.firstChild;
+                },
+                function(){
+                    child3 = document.createElement("div");
+                    uber.insertBefore(child3, child1);
+                    return child3 === child2.nextSibling;
+                }
+            ]);
+            registerTests("insertAfter", [
+                function(){
+                    child4 = document.createElement("div");
+                    uber.insertAfter(child4, child2);
+                    return child4 === child2.nextSibling;
+                },
+                function(){
+                    child5 = document.createElement("div");
+                    uber.insertAfter(child5, child1);
+                    return child5 === container.lastChild;
+                }
+            ]);
+            registerTest("insertFirst", function(){
+                child6 = document.createElement("div");
+                uber.insertFirst(child6, container);
+                return child6 === container.firstChild && child6.nextSibling === child2;
+            });
+            registerTest("insertOnly", function(){
+                child7 = document.createElement("div");
+                uber.insertOnly(child7, container);
+                return child7 === container.firstChild && child7 === container.lastChild;
+            });
+            registerTest("replaceNode", function(){
+                uber.replaceNode(child1, child7);
+                return child1 === container.firstChild && child1 === container.lastChild;
+            });
+            registerTests("insertAtIndex", [
+                function(){
+                    uber.insertAtIndex(child2, container, 0);
+                    return child2 === container.firstChild && child2.nextSibling === child1;
+                },
+                function(){
+                    uber.insertAtIndex(child3, container, 17);
+                    return child3 === container.lastChild && child1.nextSibling === child3;
+                },
+                function(){
+                    uber.insertAtIndex(child4, container, 1);
+                    return child2.nextSibling === child4 && child4.nextSibling === child1;
+                }
+            ]);
+        })();
     </script>
 </head>
 <body>
@@ -98,9 +120,6 @@
     </ul>
     <div id="TestElement"></div>
     <div id="testelement"></div>
-    <div style="display: none;">
-        <input id="test_input" type="button">
-    </div>
     <div id="container" style="display: none;"><div id="child"></div></div>
     <div id="destroy_container" style="display: none;">
         <div id="destroy_child"></div>
