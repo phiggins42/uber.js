@@ -55,7 +55,7 @@
 
             while(--length){
                 psn = prefixes[length] + styleName;
-                if(typeof style[psn] == "string"){
+                if(typeof style[psn] == STR){
                     return cache[originalName] = cache[styleName] = cache[psn] = styleName;
                 }
             }
