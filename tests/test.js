@@ -31,16 +31,86 @@
 
     function outputResult(name, result){
         var out = uber.byId("output"),
-            li = document.createElement("li");
+            li = document.createElement("li"),
+            text, clsName;
 
-        li.innerHTML = name + ": " + (result === true ? "pass" : (result === false ? "fail" : result));
-        if(!result){
-            li.className = "error";
+        if(result === true){
+            text = "pass";
+        }else if(result === false){
+            text = "fail";
+            clsName = "error";
+        }else if(toString.call(result) == arr){
+            var errs = [], fails = [];
+            for(var i=0, l=result.length; i<l; i++){
+                if(result[i] === false){
+                    fails.push(i);
+                }else if(result[i] == "error"){
+                    errs.push(i);
+                }
+            }
+            text = "";
+            if(fails.length){
+                text = "fail: " + fails.join(", ");
+            }
+            if(errs.length){
+                text += (text ? "; " : "") + "error: " + errs.join(", ");
+            }
+            if(text){
+                clsName = "error";
+            }else{
+                text = "pass";
+            }
+        }else{
+            text = result;
+            if(result == "error"){
+                clsName = "error";
+            }
+        }
+        li.innerHTML = name + ": " + text;
+        if(clsName){
+            li.className = clsName;
         }
         out.appendChild(li);
         li = null;
     }
 
-    global['ist'] = ist;
+    var tests = [];
+    function registerTest(name, testFunc){
+        tests.push({ name: name, test: testFunc });
+    }
+    function registerTests(name, testFuncs){
+        tests.push({
+            name: name,
+            test: function(){
+                var results = new Array(testFuncs.length);
+                for(var i=0; test=testFuncs[i]; i++){
+                    try{
+                        results[i] = test();
+                    }catch(e){
+                        results[i] = "error";
+                        throw e;
+                    }
+                }
+                return results;
+            }
+        });
+    }
+
+    function runTests(){
+        for(var i=0, test; test=tests[i]; i++){
+            try{
+                var result = test.test();
+            }catch(e){
+                result = "error";
+            }
+            outputResult(test.name, result);
+        }
+    }
+
+    uber.domReady().then(runTests);
+
+    global['ist'] = global["isEqual"] = ist;
     global['outputResult'] = outputResult;
+    global['registerTest'] = registerTest;
+    global['registerTests'] = registerTests;
 })(this, document, uber);
