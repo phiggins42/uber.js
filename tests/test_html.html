@@ -122,20 +122,20 @@
                     });
                     b.pause();
                     aCalled = bCalled = cCalled = false;
-                    input.click();
+                    uber.fireEvent(input, "click");
                     return aCalled && !bCalled && cCalled;
                 },
                 function(){
                     a.pause();
                     aCalled = bCalled = cCalled = false;
-                    input.click();
+                    uber.fireEvent(input, "click");
                     return !aCalled && !bCalled && cCalled;
                 },
                 function(){
                     a.resume();
                     b.resume();
                     aCalled = bCalled = cCalled = false;
-                    input.click();
+                    uber.fireEvent(input, "click");
                     return aCalled && bCalled && !cCalled;
                 }
             ]);
@@ -148,14 +148,7 @@
                 uber.listen(link, "onclick", function(evt){
                     uber.preventDefault(evt);
                 });
-                if(uber.isHostType(document, "createEvent")){
-                    var e = document.createEvent("HTMLEvents");
-                    e.initEvent("click", true, true);
-                    link.dispatchEvent(e);
-                }else{
-                    var e = document.createEventObject();
-                    link.fireEvent("onclick", e);
-                }
+                uber.fireEvent(link, "click");
 
                 return global.location.hash != "#foo";
             });
@@ -195,9 +188,6 @@
             }
         }*/
     </script>
-
-    <script src="http://o.aolcdn.com/dojo/1.5/dojo/dojo.xd.js"></script>
-    <script src="/fusejs/dist/fuse.js"></script>
 </head>
 <body>
     <ul id="output"></ul>

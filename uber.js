@@ -28,6 +28,14 @@
         return has.isHostType(d.documentElement, "parentElement");
     });
 
+    has.add("dom-createevent", function(g, d){
+        return has.isHostType(d, "createEvent");
+    });
+
+    has.add("dom-createeventobject", function(g, d){
+        return has.isHostType(d, "createEventObject");
+    });
+
     // Adapted from FuseJS
     has.add("bug-table-elements-retain-offset-dimensions-when-hidden", function(g, d, el){
         var buggy, fake,

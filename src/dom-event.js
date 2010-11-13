@@ -148,7 +148,7 @@
     if(!has("dom")){ return; }
 
     var preventDefault, stopPropagation, getEventTarget,
-        getRelatedTarget, normalizeEventName;
+        getRelatedTarget, normalizeEventName, fireEvent;
 
     if(has("event-preventdefault")){
         preventDefault = function preventDefault(evt){
@@ -221,6 +221,23 @@
     }
     // This needs to be here for listen in domReady
     uber.normalizeEventName = normalizeEventName;
+
+    if(has("dom-createevent")){
+        fireEvent = function fireEvent(element, eventName){
+            var evt = document.createEvent("HTMLEvents");
+            evt.initEvent(eventName, true, true);
+            return !element.dispatchEvent(evt);
+        };
+    }else if(has("dom-createeventobject")){
+        fireEvent = function fireEvent(element, eventName){
+            var evt = document.createEventObject();
+            return element.fireEvent("on"+eventName, e);
+        };
+    }else{
+        fireEvent = function fireEvent(element, eventName){
+            /* do nothing */
+        };
+    }
 
     function destroyElementData(element, recurse){
         var id = uber.getNodeId(element),
@@ -413,5 +430,6 @@
     uber.getRelatedTarget = getRelatedTarget;
 
     uber.normalizeEventName = normalizeEventName;
+    uber.fireEvent = fireEvent;
 
 })(this, uber);
