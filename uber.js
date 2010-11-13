@@ -27,4 +27,30 @@
     has.add("dom-parentelement", function(g, d){
         return has.isHostType(d.documentElement, "parentElement");
     });
+
+    // Adapted from FuseJS
+    has.add("bug-table-elements-retain-offset-dimensions-when-hidden", function(g, d, el){
+        var buggy, fake,
+            de = d.documentElement,
+            root = d.body || (function(){
+                fake = true;
+                return de.insertBefore(d.createElement("body"), de.firstChild);
+            }());
+        // true for IE7 and lower
+        var table = d.createElement('table'),
+            tbody = table.appendChild(d.createElement('tbody')),
+            tr    = tbody.appendChild(d.createElement('tr')),
+            tr    = tr.appendChild(d.createElement('td'));
+
+        tbody.style.display = 'none';
+        tr.style.width = '1px';
+        root.appendChild(table);
+
+        buggy = !!table.firstChild.offsetWidth;
+        uber.destroyElement(table, root);
+        if(fake){
+            root.parentNode.removeChild(root);
+        }
+        return buggy;
+    });
 })(this, document, has);
