@@ -137,7 +137,7 @@
     }
 
     function insertBefore(node, whereTo){
-        var parent = uber.getParentNode(element);
+        var parent = uber.getParentNode(whereTo);
         if(parent){
             parent.insertBefore(node, whereTo);
         }
@@ -145,7 +145,7 @@
     }
 
     function insertAfter(node, whereTo){
-        var parent = uber.getParentNode(element);
+        var parent = uber.getParentNode(whereTo);
         if(parent){
             if(parent.lastChild === whereTo){
                 parent.appendChild(node);
@@ -172,7 +172,7 @@
     }
 
     function replaceNode(node, whereTo){
-        var parent = uber.getParentNode(element);
+        var parent = uber.getParentNode(whereTo);
         if(parent){
             parent.replaceChild(node, whereTo);
         }
