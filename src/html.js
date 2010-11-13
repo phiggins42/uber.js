@@ -1,12 +1,12 @@
 (function(uber, has, document){
 
     var STR = "string",
-        getComputedStyle, getStyleProperty,
+        getComputedStyle, getStyleName,
         setSelectable, setOpacity, getOpacity
     ;
 
     uber.boxModel = has("css-content-box") ? "content-box" : "border-box";
-    uber.styleProperty = has("css-style-float") ? "styleFloat" : "cssFloat";
+    uber.floatProperty = has("css-style-float") ? "styleFloat" : "cssFloat";
 
     if(has("dom-current-style")){
         getComputedStyle = function getComputedStyle(node){
@@ -37,36 +37,45 @@
         }
     }
 
-    var getStyleProperty = (function(){
-        var testElem = document.createElement("DiV"),
-            prefixes = ['Webkit', 'Moz', 'O', 'ms', 'Khtml'],
+    var getStyleName = (function(){
+        var testElem = document.createElement("div"),
+            prefixes = ['Khtml', 'ms', 'O', 'Moz', 'Webkit'],
             dashRE = /-([a-z])/ig,
             startRE = /^(.)/,
             bump = function(all, letter){
                 return letter.toUpperCase();
-            };
+            },
+            cache = {},
+            floatName = uber.floatProperty,
+            floatNames = { 'float': floatName, 'cssFloat': floatName, 'styleFloat': floatName };
 
-        function getStyleProperty(styleName){
-            var styleName = styleName.replace(dashRE, bump),
+        function getStyleName(styleName){
+            if(styleName in cache){
+                return cache[styleName];
+            }
+            var originalName = styleName,
+                styleName = floatNames[styleName] || styleName.replace(dashRE, bump),
                 style = testElem.style,
-                length = prefixes.length;
+                length = prefixes.length,
+                psn;
 
             // test unprefixed
             if(typeof style[styleName] == STR){
-                return styleName;
+                return cache[originalName] = cache[styleName] = styleName;
             }
 
             styleName = styleName.replace(startRE, bump);
 
             while(--length){
-                if(typeof style[prefixes[length] + styleName] == "string"){
-                    return styleName;
+                psn = prefixes[length] + styleName;
+                if(typeof style[psn] == "string"){
+                    return cache[originalName] = cache[styleName] = cache[psn] = styleName;
                 }
             }
-            return null;
+            return cache[originalName] = null;
         };
 
-        return getStyleProperty;
+        return getStyleName;
     })();
 
     if(has("css-selectable")){
@@ -149,7 +158,7 @@
     }
 
     uber.getComputedStyle = getComputedStyle;
-    uber.getStyleProperty = getStyleProperty;
+    uber.getStyleName = getStyleName;
     uber.setSelectable = setSelectable;
     uber.setOpacity = setOpacity;
     uber.getOpacity = getOpacity;
