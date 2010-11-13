@@ -1,0 +1,207 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTML Tests</title>
+
+    <style>
+        li {
+            font-size: 1em;
+        }
+        div {
+            padding: 0px;
+            border: 0px;
+            margin: 0px;
+        }
+        .error {
+            color: red;
+        }
+        .hidden {
+            display: none;
+            color: red;
+        }
+        #hiddenChild {
+            width: 100px;
+            height: 100px;
+        }
+        #contentBox{
+            width: 200px;
+            height: 200px;
+            border: 1px solid red;
+        }
+        #contentPaddingBox {
+            width: 200px;
+            height: 200px;
+            border: 1px solid red;
+            padding: 1px;
+        }
+
+        #testTable {
+            empty-cells: show;
+            table-layout: fixed;
+            width: 0px;
+        }
+        #testTableCell1 {
+            outline: none;
+            overflow: hidden;
+            padding: 10px;
+            border: 1px dotted black;
+        }
+    </style>
+
+    <script src="../has.js/has.js"></script>
+    <script src="../has.js/detect/bugs.js"></script>
+    <script src="../has.js/detect/dom.js"></script>
+    <script src="../has.js/detect/css.js"></script>
+    <script src="../has.js/detect/function.js"></script>
+    <script src="../has.js/detect/object.js"></script>
+    <script src="../has.js/detect/events.js"></script>
+    <script src="../has.js/detect/features.js"></script>
+    <script src="../uber.js"></script>
+    <script src="../src/function.js"></script>
+    <script src="../src/object.js"></script>
+    <script src="../src/promise.js"></script>
+    <script src="../src/deferred.js"></script>
+    <script src="../src/deferreds.js"></script>
+    <script src="../src/dom.js"></script>
+    <script src="../src/dom-event.js"></script>
+    <script src="../src/html.js"></script>
+
+    <script src="test.js"></script>
+
+    <script>
+        registerTest("byId", function(){
+            var te = uber.byId("testelement");
+            return te && te.id === "testelement";
+        });
+        registerTest("getStyleName", function(){
+            return uber.getStyleName("float") === uber.floatProperty;
+        });
+        registerTest("setSelectable", function(){
+            var te = uber.byId("testelement");
+            uber.setSelectable(te, false);
+            if(has("css-selectable")){
+                var name = uber.getStyleName("userSelect");
+                return te.style[name] == "none";
+            }else if(has("bug-properties-are-attributes")){
+                return uber.isHostType(te, "attributes") && uber.isHostType(te.attributes, "unselectable") && te.attributes.unselectable.value == "on";
+            }else{
+                return "n/a";
+            }
+        });
+        registerTest("setOpacity/getOpacity", function(){
+            var te = uber.byId("testelement"),
+                name = uber.getStyleName("opacity");
+
+            uber.setOpacity(te, 0.5);
+            if(has("css-opacity-filter") || !!name){
+                return uber.getOpacity(te) == 0.5;
+            }else{
+                return "n/a";
+            }
+        });
+        registerTest("isVisible", function(){
+            return !uber.isVisible(uber.byId("test_cell"));
+        });
+        (function(){
+            var input, a, b, aCalled, bCalled;
+            registerTests("listen", [
+                function(){
+                    input = uber.byId("test_input");
+                    a = uber.listen(input, "onclick", function(evt){
+                        aCalled = uber.getEventTarget(evt) === input;
+                    });
+                    b = uber.listen(input, "onclick", function(evt){
+                        bCalled = uber.getEventTarget(evt) === input;
+                    });
+                    aCalled = bCalled = false;
+                    input.click();
+                    return aCalled && bCalled;
+                },
+                function(){
+                    a.pause();
+                    aCalled = bCalled = false;
+                    input.click();
+                    return !aCalled && bCalled;
+                }
+            ]);
+            registerTest("stopListening", function(){
+                uber.stopListening(input, "onclick");
+                return !uber._eventData[uber.getNodeId(input)][uber.normalizeEventName("onclick")];
+            });
+            registerTest("destroyElement", function(){
+                uber.listen(input, "onclick", function(){});
+                uber.destroyElement(input);
+                return !uber._eventData[uber.getNodeId(input)];
+            });
+        })();
+        /*function runTests(){
+            var hChild = uber.byId("hiddenChild");
+
+            outputResult("getComputedStyleValue",
+                uber.getComputedStyleValue(hChild, "color") ==
+                uber.getComputedStyleValue(uber.getParentNode(hChild), "color")
+            );
+            outputResult("isVisible", !uber.isVisible(uber.byId("test_cell")));
+
+            var to = uber.byId("testOpacity"),
+                toc1 = uber.byId("testOpacityChild1"),
+                toc2 = uber.byId("testOpacityChild2");
+
+            uber.setOpacity(to, 0.5);
+            uber.setOpacity(toc2, 0.5);
+            outputResult("setOpacity", uber.getOpacity(to) == 0.5);
+            outputResult("setOpacity, again", uber.getOpacity(toc1) == 1.0 && uber.getComputedOpacity(toc1) == 0.5 && uber.getOpacity(toc2) == 0.5 && uber.getComputedOpacity(toc2) == 0.25);
+
+            var cb = uber.byId("contentBox"),
+                cpb = uber.byId("contentPaddingBox");
+
+            if(!has("css-content-box")){
+                outputResult("getContentWidth", uber.getContentWidth(cb) == 198);
+                outputResult("getContentWidth, again", uber.getContentWidth(cpb) == 196);
+            }else{
+                outputResult("getContentWidth, content-box", uber.getContentWidth(cb) == 200);
+                outputResult("getContentWidth, content-box, again", uber.getContentWidth(cpb) == 200);
+            }
+        }*/
+    </script>
+
+    <script src="http://o.aolcdn.com/dojo/1.5/dojo/dojo.xd.js"></script>
+    <script src="/fusejs/dist/fuse.js"></script>
+</head>
+<body>
+    <ul id="output"></ul>
+
+    <div id="TestElement"></div>
+    <div id="testelement"></div>
+
+    <div class="hidden">
+        <div id="hiddenChild"></div>
+        <input id="test_input" type="button">
+    </div>
+    <div class="hidden">
+        <table>
+            <tbody>
+                <tr>
+                    <td id="test_cell"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="testDiv">Test div</div>
+    <div id="testOpacity">
+        <div id="testOpacityChild1">blah1</div>
+        <div id="testOpacityChild2">blah2</div>
+    </div>
+    <table id="testTable" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr id="testTableRow">
+                <td id="testTableCell1" style="width: 200px;">Test table cell 1</td>
+                <td id="testTableCell2">Test table cell 2</td>
+            </tr>
+        </tbody>
+    </table>
+    <div id="contentBox"></div>
+    <div id="contentPaddingBox"></div>
+</body>
+</html>
