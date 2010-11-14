@@ -70,13 +70,13 @@
         _nextNodeId = 2;
 
     function getNodeId(node){
-        // Based on work by John-David Dalton
+        // Based on work by John-David Dalton in FuseJS
         var id = node[NUMBER_PROP], win;
 
         if(!id){
             // In IE window == document is true but not document == window.
             // Use loose comparison because different `window` references for
-            // the same window may not strict equal each other.
+            // the same window may not strictly equal each other.
             win = uber.getWindow(node);
             if (node == win) {
                 id = node == global ? '0' : uber.getNodeId(node.frameElement) + '-0';
@@ -136,21 +136,21 @@
         };
     }
 
-    function insertBefore(node, whereTo){
-        var parent = uber.getParentNode(whereTo);
+    function insertBefore(node, refNode){
+        var parent = uber.getParentNode(refNode);
         if(parent){
-            parent.insertBefore(node, whereTo);
+            parent.insertBefore(node, refNode);
         }
         return node;
     }
 
-    function insertAfter(node, whereTo){
-        var parent = uber.getParentNode(whereTo);
+    function insertAfter(node, refNode){
+        var parent = uber.getParentNode(refNode);
         if(parent){
-            if(parent.lastChild === whereTo){
+            if(parent.lastChild === refNode){
                 parent.appendChild(node);
             }else{
-                parent.insertBefore(node, whereTo.nextSibling);
+                parent.insertBefore(node, refNode.nextSibling);
             }
         }
         return node;
@@ -171,10 +171,10 @@
         return node;
     }
 
-    function replaceNode(node, whereTo){
-        var parent = uber.getParentNode(whereTo);
+    function replaceNode(node, refNode){
+        var parent = uber.getParentNode(refNode);
         if(parent){
-            parent.replaceChild(node, whereTo);
+            parent.replaceChild(node, refNode);
         }
         return node;
     }
