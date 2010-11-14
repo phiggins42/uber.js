@@ -12,7 +12,7 @@
         var supported = false;
         try{
             e.innerHTML = '<p><\/p>';
-            supported = !!e.firstChild;
+            supported = !!e.firstChild && e.firstChild.nodeName.toUpperCase() == "P";
             e.innerHTML = '';
         }catch(e){}
         return supported;
@@ -20,7 +20,7 @@
 
     has.add("dom-uniquenumber", function(g, d, e){
         var docEl = d.documentElement;
-        return (typeof e.uniqueNumber == 'number' && docEl.uniqueNumber == 'number' &&
+        return (typeof e.uniqueNumber == 'number' && typeof docEl.uniqueNumber == 'number' &&
             e.uniqueNumber != docEl.uniqueNumber);
     });
 
