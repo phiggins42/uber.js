@@ -197,11 +197,79 @@
         }
     })();
 
+    var addClass, removeClass,
+        spaceRE = /[\x09\x0A\x0C\x0D\x20]/,
+        reCache = {};
+
+    function getClassRE(token){
+        var r = reCache[token];
+        if(!r){
+            r = reCache[token] = new RegExp(" " + token + " ", "g");
+        }
+        return r;
+    }
+    if(has("dom-classlist")){
+        hasClass = function hasClass(node, token){
+            return node.classList.contains(token);
+        };
+        addClass = function addClass(node, token){
+            node.classList.add(token);
+        };
+        removeClass = function removeClass(node, token){
+            node.classList.remove(token);
+        };
+        toggleClass = function toggleClass(node, token){
+            return node.classList.toggle(token);
+        };
+    }else{
+        hasClass = function hasClass(node, token){
+            if(token === "" || token.match(spaceRE)){ return; }
+            var cls = node.className, r = getClassRE(token);
+            cls = cls ? " " + cls + " " : " ";
+            return !!cls.match(r);
+        };
+        addClass = function addClass(node, token){
+            if(token === "" || token.match(spaceRE)){ return; }
+            var cls = node.className, r = getClassRE(token);
+            cls = cls ? " " + cls + " " : " ";
+            if(cls.match(r)){
+                return;
+            }
+            node.className += " " + token;
+        };
+        removeClass = function removeClass(node, token){
+            if(token === "" || token.match(spaceRE)){ return; }
+            var cls = node.className, r = getClassRE(token);
+            cls = uber.trim((cls ? " " + cls + " " : " ").replace(r, " "));
+            if(node.className != cls){
+                node.className = cls;
+            }
+        };
+        toggleClass = function toggleClass(node, token){
+            if(token === "" || token.match(spaceRE)){ return; }
+            var cls = node.className, r = getClassRE(token);
+            cls = cls ? " " + cls + " " : " ";
+            if(cls.match(r)){
+                cls = uber.trim(cls.replace(r, " "));
+                node.className = cls;
+                return false;
+            }else{
+                node.className += " " + token;
+                return true;
+            }
+        };
+    }
+
     uber.getComputedStyle = getComputedStyle;
     uber.getStyleName = getStyleName;
     uber.setSelectable = setSelectable;
     uber.setOpacity = setOpacity;
     uber.getOpacity = getOpacity;
     uber.isVisible = isVisible;
+
+    uber.hasClass = hasClass;
+    uber.addClass = addClass;
+    uber.removeClass = removeClass;
+    uber.toggleClass = toggleClass;
 
 })(uber, has, document);
