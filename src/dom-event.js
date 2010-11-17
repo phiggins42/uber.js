@@ -231,7 +231,7 @@
     }else if(has("dom-createeventobject")){
         fireEvent = function fireEvent(element, eventName){
             var evt = document.createEventObject();
-            return element.fireEvent("on"+eventName, e);
+            return element.fireEvent("on"+eventName, evt);
         };
     }else{
         fireEvent = function fireEvent(element, eventName){
