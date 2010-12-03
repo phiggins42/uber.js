@@ -8,7 +8,7 @@
     if(has("array-slice-nodelist")){
         toArray = function toArray(arrLike, offset, startWith){
             return (startWith||[]).concat(aslice.call(arrLike, offset||0));
-        }
+        };
     }else{
         toArray = function toArray(arrLike, offset, startWith){
             if(arrLike.item){
@@ -62,7 +62,7 @@
                 // it starts searching from 0.
                 return arr.lastIndexOf(searchElement);
             }
-        }
+        };
     }else{
         lastIndexOf = function lastIndexOf(arr, searchElement, fromIndex){
             var result = -1,
@@ -103,7 +103,7 @@
     if(has("array-every")){
         every = function every(arr, callback, thisArg){
             return arr.every(callback, thisArg);
-        }
+        };
     }else{
         every = function every(arr, callback, thisArg){
             for(var i=0, l=arr.length; i<l; i++){
@@ -118,7 +118,7 @@
     if(has("array-some")){
         some = function some(arr, callback, thisArg){
             return arr.some(callback, thisArg);
-        }
+        };
     }else{
         some = function some(arr, callback, thisArg){
             for(var i=0, l=arr.length; i<l; i++){
@@ -133,7 +133,7 @@
     if(has("array-foreach")){
         forEach = function forEach(arr, callback, thisArg){
             return arr.forEach(callback, thisArg);
-        }
+        };
     }else{
         forEach = function forEach(arr, callback, thisArg){
             for(var i=0, l=arr.length; i<l; i++){
@@ -147,7 +147,7 @@
     if(has("array-map")){
         map = function map(arr, callback, thisArg){
             return arr.map(callback, thisArg);
-        }
+        };
     }else{
         map = function map(arr, callback, thisArg){
             var l = arr.length,
@@ -164,7 +164,7 @@
     if(has("array-filter")){
         filter = function filter(arr, callback, thisArg){
             return arr.filter(callback, thisArg);
-        }
+        };
     }else{
         filter = function filter(arr, callback, thisArg){
             var result = [],
@@ -190,7 +190,7 @@
             }else{
                 return arr.reduce(callback);
             }
-        }
+        };
     }else{
         reduce = function reduce(arr, callback, initialValue){
             var l = arr.length,
@@ -230,7 +230,7 @@
             }else{
                 return arr.reduceRight(callback);
             }
-        }
+        };
     }else{
         reduceRight = function reduceRight(arr, callback, initialValue){
             var l = arr.length,

@@ -76,7 +76,7 @@
                 }
             }
             function add(callback){
-                var data = uber._eventData[nodeId][eventName];
+                var data = uber._eventData[nodeId][eventName],
                     idx = nextId++;
                 data.listeners[idx] = {
                     callback: callback,
@@ -402,10 +402,10 @@
                     });
                 }
                 return result;
-            }
+            };
             promise.cancel = function cancel(){
                 op.cancel.apply(op, arguments);
-            }
+            };
             if(freeze){
                 freeze(promise);
             }
