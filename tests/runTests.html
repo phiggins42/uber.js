@@ -234,24 +234,39 @@
                 }
             ]);
         })();
-        /*function runTests(){
-            (function(){
-                var x1 = uber.xhr("GET", { url: "test.js" }),
-                    x2 = uber.xhr("GET", { url: "test.jss" }),
-                    x3 = uber.xhr("GET", { url: "test.js" });
-                x3.cancel();
+        (function(){
+            registerTests("xhr", [
+                function(){
+                    return uber.xhr("GET", { url: "test.js" }).then(function(res){
+                        return res && res.status == 200 && res.responseText.slice(0, 10) == "(function(";
+                    });
+                },
+                function(){
+                    var def = new uber.Deferred();
 
-                var defs = new uber.Deferreds([x1,x2,x3]);
+                    uber.xhr("GET", { url: "test.jss" }).then(function(res){
+                        def.reject();
+                    },function(err){
+                        def.resolve(true);
+                    });
 
-                defs.then(
-                    function(res){
-                        outputResult("xhr", res[0][0] && res[0][1].status == 200 && res[0][1].responseText.slice(0, 10) == "(function(");
-                        outputResult("xhr, again", !res[1][0]);
-                        outputResult("xhr, once more", !res[2][0]);
-                    }
-                );
-            })();
-        }*/
+                    return def;
+                },
+                function(){
+                    var def = new uber.Deferred();
+
+                    var x = uber.xhr("GET", { url: "test.js" });
+                    x.then(function(res){
+                        def.reject();
+                    },function(err){
+                        def.resolve(true);
+                    });
+                    x.cancel();
+
+                    return def;
+                }
+            ]);
+        })();
     </script>
 </head>
 <body>
