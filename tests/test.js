@@ -29,8 +29,9 @@
         return a === b;
     }
 
-    function outputResult(name, result){
+    function outputResult(test, result){
         var out = uber.byId("output"),
+            name = test.name,
             li = document.createElement("li"),
             text, clsName;
 
@@ -62,11 +63,11 @@
             }
         }else{
             text = result;
-            if(result == "error"){
+            if(result instanceof Error){
                 clsName = "error";
             }
         }
-        li.innerHTML = name + ": " + text;
+        li.innerHTML = name + ": " + text + " (" + test.elapsed + "ms)";
         if(clsName){
             li.className = clsName;
         }
@@ -74,37 +75,113 @@
         li = null;
     }
 
+    function Test(kwArgs){
+        uber.Deferred.call(this, kwArgs ? kwArgs.canceller : undefined);
+
+        if(kwArgs){
+            this.name = kwArgs.name||"";
+            this.test = kwArgs.test;
+        }
+    }
+    Test.prototype = new uber.Deferred;
+    Test.prototype.constructor = Test;
+
+    function TestGroup(kwArgs){
+        Test.call(this, kwArgs);
+
+        this.tests = (kwArgs.tests||[]).slice(0);
+    }
+    TestGroup.prototype = new Test;
+    TestGroup.prototype.constructor = TestGroup;
+
+    (function(){
+        var run = function run(){
+            try{
+                var self = this;
+                this.startTime = new Date;
+                uber.when(
+                    this.test(),
+                    function(res){
+                        self.endTime = new Date;
+                        self.elapsed = self.endTime - self.startTime;
+                        self.resolve(res);
+                    },
+                    function(err){
+                        self.endTime = new Date;
+                        self.elapsed = self.endTime - self.startTime;
+                        self.reject(err);
+                    }
+                );
+            }catch(e){
+                this.endTime = new Date;
+                this.elapsed = this.endTime - this.startTime;
+                this.reject(e);
+            }
+        };
+
+        Test.prototype.run = run;
+    })();
+
+    (function(){
+        var run = function run(){
+            var tests = this.tests,
+                results = new Array(tests.length),
+                self = this,
+                onTestDone;
+
+            this.elapsed = 0;
+            for(var i=0, test; test=tests[i]; i++){
+                onTestDone = (function(index, thisTest, nextTest){
+                    return function(res){
+                        if(res instanceof Error){
+                            results[index] = "error";
+                        }else{
+                            results[index] = res;
+                        }
+                        self.elapsed += thisTest.elapsed;
+                        if(nextTest){
+                            nextTest.run();
+                        }else{
+                            self.resolve(results);
+                        }
+                    };
+                })(i, test, tests[i+1]);
+                uber.when(test, onTestDone, onTestDone);
+            }
+
+            this.startTime = new Date;
+            tests[0].run();
+        };
+
+        TestGroup.prototype.run = run;
+    })();
+
     var tests = [];
     function registerTest(name, testFunc){
-        tests.push({ name: name, test: testFunc });
+        tests.push(new Test({ name: name, test: testFunc }));
     }
     function registerTests(name, testFuncs){
-        tests.push({
-            name: name,
-            test: function(){
-                var results = new Array(testFuncs.length);
-                for(var i=0; test=testFuncs[i]; i++){
-                    try{
-                        results[i] = test();
-                    }catch(e){
-                        results[i] = "error";
-                        throw e;
-                    }
-                }
-                return results;
-            }
-        });
+        var groupTests = [];
+        for(var i=0, test; test=testFuncs[i]; i++){
+            groupTests.push(new Test({ test: test }));
+        }
+        tests.push(new TestGroup({ name: name + " (group)", tests: groupTests }));
     }
 
     function runTests(){
-        for(var i=0, test; test=tests[i]; i++){
-            try{
-                var result = test.test();
-            }catch(e){
-                result = "error";
-            }
-            outputResult(test.name, result);
+        var onTestDone;
+        for(var i=0, l=tests.length; i<l; i++){
+            onTestDone = (function(thisTest, nextTest){
+                return function(res){
+                    outputResult(thisTest, res);
+                    if(nextTest){
+                        nextTest.run();
+                    }
+                };
+            })(tests[i], tests[i+1]);
+            uber.when(tests[i], onTestDone, onTestDone);
         }
+        tests[0].run();
     }
 
     uber.domReady().then(runTests);
