@@ -102,6 +102,11 @@ Provides a way to be notified when the DOM can be modified.
 ### Returns
 `uber.Promise`
 
+### Example
+	uber.domReady().then(function(){
+		uber.byId("output").innerHTML = "Hello, World!";
+	});
+
 
 ## uber.unload()
 Provides a way to be notified when the user has unloaded the page.
