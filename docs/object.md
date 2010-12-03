@@ -1,10 +1,21 @@
 # Object helpers
 
+* [uber.isFunction](#isFunction)
+* [uber.isArray](#isArray)
+* [uber.isString](#isString)
+* [uber.isNumber](#isNumber)
+* [uber.isRegExp](#isRegExp)
+* [uber.hasKey](#hasKey)
+* [uber.keys](#keys)
+* [uber.forIn](#forIn)
+* [uber.mixin](#mixin)
+* [uber.create](#create)
+
 ### Requires
 * src/array.js
 * src/function.js
 
-## uber.isFunction(obj)
+## <a name="isFunction">uber.isFunction(obj)</a>
 Determines if an object is a `Function`.
 
 ### Arguments
@@ -14,7 +25,7 @@ Determines if an object is a `Function`.
 Boolean
 
 
-## uber.isArray(obj)
+## <a name="isArray">uber.isArray(obj)</a>
 Determines if an object is an `Array`.
 
 ### Arguments
@@ -24,7 +35,7 @@ Determines if an object is an `Array`.
 Boolean
 
 
-## uber.isString(obj)
+## <a name="isString">uber.isString(obj)</a>
 Determines if an object is a `String`.
 
 ### Arguments
@@ -34,7 +45,7 @@ Determines if an object is a `String`.
 Boolean
 
 
-## uber.isNumber(obj)
+## <a name="isNumber">uber.isNumber(obj)</a>
 Determines if an object is a `Number`.
 
 ### Arguments
@@ -44,7 +55,7 @@ Determines if an object is a `Number`.
 Boolean
 
 
-## uber.isRegExp(obj)
+## <a name="isRegExp">uber.isRegExp(obj)</a>
 Determines if an object is a `RegExp`.
 
 ### Arguments
@@ -54,7 +65,7 @@ Determines if an object is a `RegExp`.
 Boolean
 
 
-## uber.hasKey(obj, prop)
+## <a name="hasKey">uber.hasKey(obj, prop)</a>
 Determines if an object has a property.  Analogous to `Object.prototype.hasOwnProperty`.  WARNING: Do not use this on DOM classes as it may throw an error \(See [Mozilla bug #375344][1]\).
 
 ### Arguments
@@ -65,7 +76,7 @@ Determines if an object has a property.  Analogous to `Object.prototype.hasOwnPr
 Boolean
 
 
-## uber.keys(obj)
+## <a name="keys">uber.keys(obj)</a>
 Retrieves a list of all enumerable properties of an Object.  Analogous to `Object.keys` in ES5.
 
 ### Arguments
@@ -75,8 +86,8 @@ Retrieves a list of all enumerable properties of an Object.  Analogous to `Objec
 Array
 
 
-## uber.forIn(target, callback, *thisArg*)
-Calls `callback` for each enumerable property of `target`.  This is similar to `uber.forEach`, but for enumerable properties of an object.
+## <a name="forIn">uber.forIn(target, callback, *thisArg*)</a>
+Calls `callback` for each enumerable property of `target`.  This is similar to [`uber.forEach`][2], but for enumerable properties of an object.
 
 ### Arguments
 1. `target` (Object): The object to traverse.
@@ -89,7 +100,7 @@ Calls `callback` for each enumerable property of `target`.  This is similar to `
 3. `thisArg` (Object, *optional*): The scope to run `callback` in.
 
 
-## uber.mixin(target, source)
+## <a name="mixin">uber.mixin(target, source)</a>
 Adds properties from one object to another.  Similar to `Object.defineProperties` in ES5 (`source` is different in this implementation).
 
 ### Arguments
@@ -100,7 +111,7 @@ Adds properties from one object to another.  Similar to `Object.defineProperties
 `target` (Object)
 
 
-## uber.create(obj, *props*)
+## <a name="create">uber.create(obj, *props*)</a>
 Create a new object with a specified prototype.  Similar to `Object.create` in ES5 (`props` is different in this implementation).
 
 ### Arguments
@@ -112,3 +123,4 @@ Object
 
 
 [1]: https://bugzilla.mozilla.org/show_bug.cgi?id=375344
+[2]: array.md#forEach

@@ -1,20 +1,27 @@
 # Deferred
 
+* [uber.Deferred](#Deferred)
+	* [then](#then)
+	* [resolve](#resolve)
+	* [reject](#reject)
+	* [progress](#progress)
+	* [cancel](#cancel)
+
 ### Requires
 * src/array.js
 * src/function.js
 * src/object.js
 * src/promise.js
 
-## uber.Deferred(*canceller*)
-Inherits from `uber.Promise`.
+## <a name="Deferred">uber.Deferred(*canceller*)</a>
+Inherits from [`uber.Promise`][1].
 
 ### Constructor Arguments
 1. `canceller` (Function, *optional*):
 
 ### Methods
 
-> #### then(resolvedCb, *errorCb*, *progressCb*)
+> #### <a name="then">then(resolvedCb, *errorCb*, *progressCb*)</a>
 > ##### Arguments
 > 1. `resolvedCb` (Function):
 > > ###### Arguments
@@ -29,18 +36,21 @@ Inherits from `uber.Promise`.
 > > 1. `update` (Object):
 > 
 > ##### Returns
-> `uber.Promise`
+> [`uber.Promise`][1]
 > 
-> #### resolve(value)
+> #### <a name="resolve">resolve(value)</a>
 > ##### Arguments
 > 1. `value` (Object):
 > 
-> #### reject(error)
+> #### <a name="reject">reject(error)</a>
 > ##### Arguments
 > 1. `error` (Object or Error):
 > 
-> #### progress(update)
+> #### <a name="progress">progress(update)</a>
 > ##### Arguments
 > 1. `update` (Object):
 > 
-> #### cancel()
+> #### <a name="cancel">cancel()</a>
+
+
+[1]: promise.md#Promise

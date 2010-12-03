@@ -1,7 +1,18 @@
 # Array helpers
-All of these helpers (with the exception of `uber.toArray`) default to the browser implementation if it is available.
+All of these helpers \(with the exception of [`uber.toArray`](#toArray)\) default to the browser implementation if it is available.
 
-## uber.toArray(arrLike, *offset*, *startWith*)
+* [uber.toArray](#toArray)
+* [uber.indexOf](#indexOf)
+* [uber.lastIndexOf](#lastIndexOf)
+* [uber.every](#every)
+* [uber.some](#some)
+* [uber.forEach](#forEach)
+* [uber.map](#map)
+* [uber.filter](#filter)
+* [uber.reduce](#reduce)
+* [uber.reduceRight](#reduceRight)
+
+## <a name="toArray">uber.toArray(arrLike, *offset*, *startWith*)</a>
 Convert an Array-like object (arguments, NodeList, etc.) to an Array.
 
 ### Arguments
@@ -13,7 +24,7 @@ Convert an Array-like object (arguments, NodeList, etc.) to an Array.
 Array
 
 
-## uber.indexOf(arr, searchElement, *fromIndex*)
+## <a name="indexOf">uber.indexOf(arr, searchElement, *fromIndex*)</a>
 Find the index of the first occurrence of an object within an Array.
 
 ### Arguments
@@ -25,7 +36,7 @@ Find the index of the first occurrence of an object within an Array.
 The index of the item or `-1` if the item is not found.
 
 
-## uber.lastIndexOf(arr, searchElement, *fromIndex*)
+## <a name="lastIndexOf">uber.lastIndexOf(arr, searchElement, *fromIndex*)</a>
 Find the index of the last occurrence of an object within an Array.
 
 ### Arguments
@@ -37,7 +48,7 @@ Find the index of the last occurrence of an object within an Array.
 The last index of the item or `-1` if the item is not found.
 
 
-## uber.every(arr, callback, *thisArg*)
+## <a name="every">uber.every(arr, callback, *thisArg*)</a>
 Determine if every element of an Array meets a specified criteria.
 
 ### Arguments
@@ -56,7 +67,7 @@ Determine if every element of an Array meets a specified criteria.
 Boolean: `true` if `callback` returns true for every element in `arr`, otherwise `false`.
 
 
-## uber.some(arr, callback, *thisArg*)
+## <a name="some">uber.some(arr, callback, *thisArg*)</a>
 Determine if at least one element of an Array meets a specified criteria.
 
 ### Arguments
@@ -75,7 +86,7 @@ Determine if at least one element of an Array meets a specified criteria.
 Boolean: `true` if `callback` returns true for at least one element in `arr`, otherwise `false`.
 
 
-## uber.forEach(arr, callback, *thisArg*)
+## <a name="forEach">uber.forEach(arr, callback, *thisArg*)</a>
 Call `callback` on each element of an Array (skipping `undefined` values).
 
 ### Arguments
@@ -89,7 +100,7 @@ Call `callback` on each element of an Array (skipping `undefined` values).
 3. `thisArg` (Object, *optional*): The scope to run `callback` in.
 
 
-## uber.map(arr, callback, *thisArg*)
+## <a name="map">uber.map(arr, callback, *thisArg*)</a>
 Construct a new Array from the results of calling `callback` on each element of an Array (skipping `undefined` values).
 
 ### Arguments
@@ -108,7 +119,7 @@ Construct a new Array from the results of calling `callback` on each element of 
 Array
 
 
-## uber.filter(arr, callback, *thisArg*)
+## <a name="filter">uber.filter(arr, callback, *thisArg*)</a>
 Construct a new Array from the items of an Array for which calling `callback` returns true (skipping `undefined` values).
 
 ### Arguments
@@ -127,7 +138,7 @@ Construct a new Array from the items of an Array for which calling `callback` re
 Array
 
 
-## uber.reduce(arr, callback, *initialValue*)
+## <a name="reduce">uber.reduce(arr, callback, *initialValue*)</a>
 
 ### Arguments
 1. `arr` (Array): The Array to traverse.
@@ -146,7 +157,7 @@ Array
 Object
 
 
-## uber.reduceRight(arr, callback, *initialValue*)
+## <a name="reduceRight">uber.reduceRight(arr, callback, *initialValue*)</a>
 
 ### Arguments
 1. `arr` (Array): The Array to traverse.

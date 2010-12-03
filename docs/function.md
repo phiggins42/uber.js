@@ -1,9 +1,12 @@
 # Function helpers
 
+* [uber.bind](#bind)
+* [uber.curry](#curry)
+
 ### Requires
 * src/array.js
 
-## uber.bind(func, scope, *arg1*, ...)
+## <a name="bind">uber.bind(func, scope, *arg1*, ...)</a>
 Bind a function to an object so it will always run with the object as its scope.  If the implementation provides it, this will use `Function.prototype.bind`.
 
 ### Arguments
@@ -15,7 +18,7 @@ Bind a function to an object so it will always run with the object as its scope.
 Function
 
 
-## uber.curry(func, *arg1*, ...)
+## <a name="curry">uber.curry(func, *arg1*, ...)</a>
 
 ### Arguments
 1. `func` (Function):

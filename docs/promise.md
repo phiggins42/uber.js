@@ -1,16 +1,20 @@
 # Promises
 
+* [uber.Promise](#Promise)
+	* [then](#then)
+* [uber.when](#when)
+
 ### Requires
 * src/array.js
 * src/function.js
 * src/object.js
 
-## uber.Promise()
+## <a name="Promise">uber.Promise()</a>
 A generic interface for promises.  For an implementation, see [`uber.Deferred`][1].
 
 ### Methods
 
-> #### then(resolvedCb, *errorCb*, *progressCb*)
+> #### <a name="then">then(resolvedCb, *errorCb*, *progressCb*)</a>
 > This method is not implemented and must be implemented by anything inheriting from `uber.Promise`.
 > 
 > ##### Arguments
@@ -30,7 +34,7 @@ A generic interface for promises.  For an implementation, see [`uber.Deferred`][
 > `uber.Promise`
 
 
-## uber.when(promiseOrValue, callback, *errback*, *progressHandler*)
+## <a name="when">uber.when(promiseOrValue, callback, *errback*, *progressHandler*)</a>
 
 ### Arguments
 1. `promiseOrValue` (`uber.Promise` or Object):
