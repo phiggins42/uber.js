@@ -15,8 +15,8 @@
             ws = new RegExp(whitespace);
         }
         trim = function trim(str){
-            var str = str.replace(wsPlus, ''),
-                i = str.length;
+            str = str.replace(wsPlus, '');
+            var i = str.length;
             while(ws.test(str.charAt(--i)));
             return str.substring(0, i + 1);
         };

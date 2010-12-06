@@ -57,9 +57,9 @@
                 obj = Object(obj);
                 var constructor = obj.constructor;
                 return property in obj &&
-                  (constructor && constructor.prototype
-                    ? obj[prop] !== constructor.prototype[prop]
-                    : obj[prop] !== op[prop]);
+                  ((constructor && constructor.prototype) ?
+                    obj[prop] !== constructor.prototype[prop] :
+                    obj[prop] !== op[prop]);
             };
         }
     }
@@ -177,7 +177,7 @@
                     uber.mixin(tmp, props);
                 }
                 return tmp; // Object
-            }
+            };
         }
         return create;
     })();

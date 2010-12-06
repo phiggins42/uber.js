@@ -60,7 +60,7 @@
         var table = d.createElement('table'),
             tbody = table.appendChild(d.createElement('tbody')),
             tr    = tbody.appendChild(d.createElement('tr')),
-            tr    = tr.appendChild(d.createElement('td'));
+            td    = tr.appendChild(d.createElement('td'));
 
         tbody.style.display = 'none';
         tr.style.width = '1px';
@@ -84,7 +84,7 @@
         if(has("dom-computed-style")){
             des.paddingBottom = '1px';
             var style = d.defaultView.getComputedStyle(docEl, null);
-            result = style && (parseInt(style.height) || 0) ==  docEl.offsetHeight;
+            result = style && (parseInt(style.height, 10) || 0) ==  docEl.offsetHeight;
             des.paddingBottom = backup;
         }
         return result;

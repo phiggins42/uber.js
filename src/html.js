@@ -60,7 +60,7 @@
                 }
             }
             return cache[originalName] = null;
-        };
+        }
 
         return getStyleName;
     })();
@@ -79,7 +79,7 @@
             var v = (node.unselectable = selectable ? "" : "on"),
                 element, elements = node.getElementsByTagName("*"), i = -1;
 
-            while(element = elements[++i]){
+            while((element = elements[++i])){
                 if(element.nodeType == 1){ // ELEMENT_NODE
                     element.unselectable = v;
                 }
@@ -88,7 +88,7 @@
     }else{
         setSelectable = function setSelectable(){
             /* do nothing */
-        }
+        };
     }
 
     var astr = "DXImageTransform.Microsoft.Alpha";
@@ -98,7 +98,7 @@
         }catch(e){
             return f ? {} : null;
         }
-    };
+    }
 
     var opacityProp = getStyleName("opacity");
     if(has("css-opacity-filter")){
@@ -223,7 +223,7 @@
         };
     }else{
         hasClass = function hasClass(node, token){
-            if(token === "" || token.match(spaceRE)){ return; }
+            if(token === "" || token.match(spaceRE)){ return false; }
             var cls = node.className, r = getClassRE(token);
             cls = cls ? " " + cls + " " : " ";
             return !!cls.match(r);
@@ -246,7 +246,7 @@
             }
         };
         toggleClass = function toggleClass(node, token){
-            if(token === "" || token.match(spaceRE)){ return; }
+            if(token === "" || token.match(spaceRE)){ return false; }
             var cls = node.className, r = getClassRE(token);
             cls = cls ? " " + cls + " " : " ";
             if(cls.match(r)){

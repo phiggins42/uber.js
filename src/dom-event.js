@@ -263,7 +263,7 @@
     function destroyDescendantData(element){
         var i = -1, elements = element.getElementsByTagName("*");
 
-        while(element = elements[++i]){
+        while((element = elements[++i])){
             if(element.nodeType == 1){ // ELEMENT_NODE
                 destroyElementData(element, false);
             }
@@ -349,7 +349,7 @@
                 // Avoid a potential browser hang when checking window.top (thanks Rich Dougherty)
                 // The value of frameElement can be null or an object.
                 // Checking window.frameElement could throw if not accessible.
-                try { doScrollCheck = global.frameElement == null; } catch(e) { }
+                try { doScrollCheck = global.frameElement === null; } catch(e) { }
 
                 checkDOMReady = function(){
                     if(isLoaded){

@@ -40,7 +40,7 @@
         var useStatus = reHTTP.test(url) ||
             (url.slice(0, 6).indexOf(':') < 0 ?
               reHTTP.test(global.location.protocol) : false);
-        return useStatus ? (status >= 200 && status < 300 || status == 304) : status == 0;
+        return useStatus ? (status >= 200 && status < 300 || status == 304) : status === 0;
     }
 
     function createHandler(id){
@@ -96,7 +96,7 @@
                 }
                 delete uber._xhrData[id];
             }
-        }
+        };
     }
 
     function createCanceller(id){
@@ -112,7 +112,7 @@
             }
             delete uber._xhrData[id];
             return new Error("cancelled");
-        }
+        };
     }
 
     function createTimeoutHandler(id){
@@ -129,7 +129,7 @@
                 data.deferred.reject(new Error("timeout"));
                 delete uber._xhrData[id];
             }
-        }
+        };
     }
 
     function xhr(method, args){
@@ -144,8 +144,9 @@
         }
 
         var id = _nextXhrId++,
-            canceller = createCanceller(id),
-            d = new uber.Deferred(canceller);
+            canceller = createCanceller(id);
+
+        d = new uber.Deferred(canceller);
 
         var data = uber._xhrData[id] = {
             xhr: x,

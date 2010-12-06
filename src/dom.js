@@ -13,7 +13,7 @@
         // based on work by Diego Perini and John-David Dalton
         var frame, i = -1, doc = uber.getDocument(element), frames = global.frames;
         if(document != doc){
-            while(frame = frames[++i]){
+            while((frame = frames[++i])){
                 if(frame.document == doc){
                     return frame;
                 }
@@ -47,6 +47,7 @@
                     }
                 }
             }
+			return null;
         };
     }else{
         byId = function byId(id, doc){
@@ -62,7 +63,7 @@
                 }
                 node = node.parentNode;
             }
-        }catch(e){};
+        }catch(e){}
         return false;
     }
 
@@ -130,7 +131,7 @@
         };
         destroyDescendants = function destroyDescendants(element){
             var child, de = uber.destroyElement;
-            while(child = element.lastChild){
+            while((child = element.lastChild)){
                 de(child, element);
             }
         };

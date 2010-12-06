@@ -5,7 +5,7 @@
         forEach, map, filter, reduce, reduceRight
     ;
 
-    if(has("array-slice-nodelist")){
+    if(!has("dom") || has("array-slice-nodelist")){
         toArray = function toArray(arrLike, offset, startWith){
             return (startWith||[]).concat(aslice.call(arrLike, offset||0));
         };
@@ -196,7 +196,7 @@
             var l = arr.length,
                 ivPresent = arguments.length > 2,
                 acc, i;
-            if(l==0 && !ivPresent){
+            if(l===0 && !ivPresent){
                 throw new TypeError("Reduce of empty array with no initial value");
             }
             i = 0;
@@ -236,7 +236,7 @@
             var l = arr.length,
                 ivPresent = arguments.length > 2,
                 acc, i;
-            if(l==0 && !ivPresent){
+            if(l===0 && !ivPresent){
                 throw new TypeError("Reduce of empty array with no initial value");
             }
             i = l-1;
