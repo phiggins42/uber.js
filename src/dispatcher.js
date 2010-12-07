@@ -24,7 +24,7 @@
         this.paused = paused;
     }
 
-    function Dispatcher(){
+    function createDispatcher(){
         var listeners = [], first;
         function Dispatcher(){
             var lls = listeners.slice(0),
@@ -42,19 +42,19 @@
             return r;
         }
         function add(callback){
-            var l = {
-                callback: callback,
-                paused: false
-            };
-            listeners.push(l);
+            function add(callback){
+                var l = {
+                    callback: callback,
+                    paused: false
+                };
+                listeners.push(l);
 
-            return new Handle(l, listeners);
-        }
-        function addFirst(callback){
-            first = callback;
+                return new Handle(l, listeners);
+            }
+            Dispatcher._first = first = callback;
             Dispatcher.add = add;
         }
-        Dispatcher.add = addFirst;
+        Dispatcher.add = add;
         return Dispatcher;
     }
 
@@ -62,14 +62,22 @@
         // DO NOT use this on nodes.  For nodes, use uber.listen.
         var f = (obj||global)[method];
         if(!f || !f.add){
-            var d = new uber.Dispatcher;
+            var d = uber.createDispatcher();
             d.add(f);
             f = obj[method] = d;
         }
         return f.add(func);
     }
 
-    uber.Dispatcher = Dispatcher;
+    function disconnect(obj, method){
+        var f = (obj||global)[method];
+        if(f && f.add){
+            obj[method] = f._first;
+        }
+    }
+
+    uber.createDispatcher = createDispatcher;
     uber.connect = connect;
+    uber.disconnect = disconnect;
 
 })(uber, this);
