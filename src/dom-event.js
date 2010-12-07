@@ -48,7 +48,17 @@
                 return uber._eventData[nodeId][eventName];
             }
             this.cancel = function(){
-                delete getData().listeners[idx];
+                var data = getData(),
+                    order = data.order,
+                    listeners = data.listeners;
+                for(var i=order.length; i--;){
+                    if(order[i] == idx){
+                        order.splice(i, 1);
+                    }
+                }
+                if(idx in listeners){
+                    delete listeners[idx];
+                }
             };
             this.pause = function(){
                 getData().listeners[idx].paused = true;
@@ -67,17 +77,22 @@
                 var nodeData = uber._eventData[nodeId],
                     data = nodeData[eventName],
                     realEvent = evt || uber.getWindow(uber.getDocument(nodeData.__element)).event,
-                    lls = data.listeners.slice(0), i, l;
+                    lo = data.order.slice(0),
+                    lls =  data.listeners,
+                    i, l, id;
 
-                for(i=0, l=lls.length; i<l; i++){
-                    if((i in lls) && !lls[i].paused){
-                        lls[i].callback.call(nodeData.__element, realEvent);
+                for(i=0, l=lo.length; i<l; i++){
+                    id = lo[i];
+                    if(typeof id != "undefined" && (id in lls) && !lls[id].paused){
+                        lls[id].callback.call(nodeData.__element, realEvent);
                     }
                 }
             }
             function add(callback){
                 var data = uber._eventData[nodeId][eventName],
-                    idx = nextId++;
+                    idx = (Math.random() + '').substring(2,14) + (new Date().getTime() + '').substring(8,13);
+
+                data.order.push(idx);
                 data.listeners[idx] = {
                     callback: callback,
                     paused: false
@@ -86,7 +101,8 @@
             }
             return {
                 dispatcher: dispatcher,
-                listeners: [],
+                listeners: {},
+                order: [],
                 add: add
             };
         }
