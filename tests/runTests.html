@@ -27,7 +27,6 @@
     <script src="../src/string.js"></script>
     <script src="../src/promise.js"></script>
     <script src="../src/deferred.js"></script>
-    <script src="../src/deferreds.js"></script>
     <script src="../src/dom.js"></script>
     <script src="../src/dom-event.js"></script>
     <script src="../src/html.js"></script>
@@ -160,6 +159,7 @@
             var originalCalled, bCalled, cCalled;
             originalCalled = bCalled = cCalled = false;
             var a = { foo: function(){ originalCalled = true; return 1; } };
+            var originalFoo = a.foo;
             var b = uber.connect(a, "foo", function(){ bCalled = true; return 2; });
             var c = uber.connect(a, "foo", function(){ cCalled = true; return 3; });
 
@@ -188,9 +188,9 @@
                 },
                 function(){
                     originalCalled = bCalled = cCalled = false;
-                    c.cancel();
+                    uber.disconnect(a, "foo");
                     a.foo();
-                    return originalCalled && !bCalled && !cCalled;
+                    return originalCalled && a.foo === originalFoo && !bCalled && !cCalled;
                 }
             ]);
         })();
@@ -226,9 +226,7 @@
                 },
                 function(){
                     aCalled = bCalled = cCalled = dCalled = false;
-                    a.cancel();
-                    b.cancel();
-                    c.cancel();
+                    uber.cancelSubscriptions("some:foo");
                     uber.publish("some:foo");
                     return !aCalled && !bCalled && !cCalled && !dCalled;
                 }
