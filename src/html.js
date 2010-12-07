@@ -40,26 +40,25 @@
             if(styleName in cache){
                 return cache[styleName];
             }
-            var originalName = styleName,
-                styleName = floatNames[styleName] || styleName.replace(dashRE, bump),
+            var sn = floatNames[styleName] || styleName.replace(dashRE, bump),
                 style = testElem.style,
                 length = prefixes.length,
                 psn;
 
             // test unprefixed
-            if(typeof style[styleName] == STR){
-                return cache[originalName] = cache[styleName] = styleName;
+            if(typeof style[sn] == STR){
+                return cache[styleName] = cache[sn] = sn;
             }
 
-            styleName = styleName.replace(startRE, bump);
+            sn = sn.replace(startRE, bump);
 
             while(--length){
-                psn = prefixes[length] + styleName;
+                psn = prefixes[length] + sn;
                 if(typeof style[psn] == STR){
-                    return cache[originalName] = cache[styleName] = cache[psn] = styleName;
+                    return cache[styleName] = cache[sn] = cache[psn] = sn;
                 }
             }
-            return cache[originalName] = null;
+            return cache[styleName] = null;
         }
 
         return getStyleName;
