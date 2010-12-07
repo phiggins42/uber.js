@@ -1,13 +1,32 @@
 (function(uber, global){
 
-    function Handle(args){
-        uber.mixin(this, args);
+    function Handle(listener, listeners){
+        function cancel(){
+            for(var i=listeners.length; i--;){
+                if(listeners[i] === listener){
+                    listeners.splice(i, 1);
+                }
+            }
+        }
+        function pause(){
+            listener.paused = true;
+        }
+        function resume(){
+            listener.paused = false;
+        }
+        function paused(){
+            return listener.paused;
+        }
+
+        this.cancel = cancel;
+        this.pause = pause;
+        this.resume = resume;
+        this.paused = paused;
     }
 
-    var ap = Array.prototype;
-    function createDispatcher(){
+    function Dispatcher(){
         var listeners = [], first;
-        function dispatcher(){
+        function Dispatcher(){
             var lls = listeners.slice(0),
                 r, i, l, ls;
 
@@ -29,50 +48,28 @@
             };
             listeners.push(l);
 
-            function cancel(){
-                for(var i=listeners.length; i--;){
-                    if(listeners[i] === l){
-                        listeners.splice(i, 1);
-                    }
-                }
-            }
-            function pause(){
-                l.paused = true;
-            }
-            function resume(){
-                l.paused = false;
-            }
-            function paused(){
-                return l.paused;
-            }
-
-            return new Handle({
-                cancel: cancel,
-                pause: pause,
-                resume: resume,
-                paused: paused
-            });
+            return new Handle(l, listeners);
         }
         function addFirst(callback){
             first = callback;
-            dispatcher.add = add;
+            Dispatcher.add = add;
         }
-        dispatcher.add = addFirst;
-        return dispatcher;
+        Dispatcher.add = addFirst;
+        return Dispatcher;
     }
 
     function connect(obj, method, func){
         // DO NOT use this on nodes.  For nodes, use uber.listen.
         var f = (obj||global)[method];
         if(!f || !f.add){
-            var d = createDispatcher();
+            var d = new uber.Dispatcher;
             d.add(f);
             f = obj[method] = d;
         }
         return f.add(func);
     }
 
-    uber.createDispatcher = createDispatcher;
+    uber.Dispatcher = Dispatcher;
     uber.connect = connect;
 
 })(uber, this);
