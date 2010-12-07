@@ -26,7 +26,7 @@
 * src/deferred.js
 * src/dom.js
 
-## <a name="NodeEventHandle">uber.NodeEventHandle()</a>
+## <a name="NodeEventHandle">uber.NodeEventHandle</a>
 Strictly an interface for modifying individual node event handlers.  This cannot be instantiated.
 
 ### Methods
