@@ -2,6 +2,7 @@
 
 * [uber.subscribe](#subscribe)
 * [uber.publish](#publish)
+* [uber.cancelSubscriptions](#cancelSubscriptions)
 
 #### Requires
 * src/array.js
@@ -24,3 +25,9 @@
 ### Arguments
 1. `topic` (String):
 2. `args` (Array):
+
+
+## <a name="cancelSubscriptions">uber.cancelSubscriptions(topic)</a>
+
+### Arguments
+1. `topic` (String):

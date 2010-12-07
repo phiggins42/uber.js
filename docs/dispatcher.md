@@ -7,7 +7,9 @@
 	* [paused](#paused)
 * [uber.Dispatcher](#Dispatcher)
 	* [add](#add)
+* [uber.createDispatcher](#createDispatcher)
 * [uber.connect](#connect)
+* [uber.disconnect](#disconnect)
 
 #### Requires
 * src/array.js
@@ -35,6 +37,7 @@ Strictly an interface for modifying individual event handlers.  This cannot be i
 
 
 ## <a name="Dispatcher">uber.Dispatcher</a>
+Strictly an interface for dispatching function calls.  This cannot be instantiated.
 
 ### Methods
 > #### <a name="add">add(callback)</a>
@@ -46,7 +49,15 @@ Strictly an interface for modifying individual event handlers.  This cannot be i
 > [`uber.DispatcherHandle`](#DispatcherHandle)
 
 
+## <a name="createDispatcher">uber.createDispatcher()</a>
+It is recommended that you use [`uber.connect`](#connect) rather than `uber.createDispatcher` directly.
+
+### Returns
+[`uber.Dispatcher`](#Dispatcher)
+
+
 ## <a name="connect">uber.connect(obj, method, func)</a>
+**WARNING** Do not use `uber.connect` with `DOMNode`s; instead, use [`uber.listen`](dom-event.md#listen).
 
 ### Arguments
 1. `obj` (Object):
@@ -55,3 +66,11 @@ Strictly an interface for modifying individual event handlers.  This cannot be i
 
 ### Returns
 [`uber.DispatcherHandle`](#DispatcherHandle)
+
+
+## <a name="disconnect">uber.disconnect(obj, method)</a>
+Disconnects all connections for a method and restores the original method (if applicable).
+
+### Arguments
+1. `obj` (Object):
+2. `method` (String):
