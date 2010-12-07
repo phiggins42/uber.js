@@ -6,8 +6,10 @@
 	* [reject](#reject)
 	* [progress](#progress)
 	* [cancel](#cancel)
+* [uber.Deferreds](#Deferreds)
+	* [then](#thenDeferreds)
 
-### Requires
+#### Requires
 * src/array.js
 * src/function.js
 * src/object.js
@@ -52,5 +54,32 @@ Inherits from [`uber.Promise`][1].
 > 
 > #### <a name="cancel">cancel()</a>
 
+
+## <a name="Deferreds">uber.Deferreds(defs, *canceller*)</a>
+Inherits from [`uber.Deferred`](#Deferred).
+
+### Constructor Arguments
+1. `defs` (Array of [`uber.Deferred`](#Deferred)):
+2. `canceller` (Function, *optional*):
+
+### Methods
+See [`uber.Deferred`](#Deferred)
+
+> #### <a name="thenDeferreds">then(resolvedCb, *errorCb*, *progressCb*)</a>
+> ##### Arguments
+> 1. `resolvedCb` (Function):
+> > ###### Arguments
+> > 1. `result` (Array[Array[Boolean, Object]]):
+> 
+> 2. `errorCb` (Function, *optional*):
+> > ###### Arguments
+> > 1. `error` (Error):
+> 
+> 3. `progressCb` (Function, *optional*):
+> > ###### Arguments
+> > 1. `update` (Object):
+> 
+> ##### Returns
+> [`uber.Promise`][1]
 
 [1]: promise.md#Promise
