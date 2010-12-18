@@ -32,7 +32,8 @@
 
     // Use uber.hasKey() on Object objects only as it may error on DOM Classes
     // https://bugzilla.mozilla.org/show_bug.cgi?id=375344
-    var hop = Object.prototype.hasOwnProperty;
+    var op = Object.prototype,
+        hop = op.hasOwnProperty;
     if(isFunction(hop)){
         hasKey = function hasKey(obj, prop){
             return hop.call(obj, prop);
@@ -78,7 +79,7 @@
         };
     }
 
-    if(has("bug-dontenum-enumerable")){
+    if(has("bug-for-in-shadowed")){
         // IE
         var shadowed = [
                 'constructor', 'hasOwnProperty',
@@ -95,8 +96,7 @@
                 callback(target[name], name, target);
             }
             // IE doesn't recognize some custom functions in for..in
-            for(i = 0; i < shadowedLen; ++i){
-                name = shadowed[i];
+            for(i = 0; name = shadowed[i]; ++i){
                 if(hasKey(target, name)){
                     callback(target[name], name, target);
                 }

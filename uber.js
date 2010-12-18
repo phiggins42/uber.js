@@ -4,6 +4,22 @@
         clearElement: has.clearElement
     };
 
+    function testForIn(g, value){
+        var klass = function(){ this.toString = 1; }, i, count = 0;
+        for(i in new klass){ count++; }
+        has.add("bug-for-in-doubled", count == 2);
+        has.add("bug-for-in-shadowed", count === 0);
+        return count === value;
+    }
+
+    has.add("bug-for-in-doubled", function(g){
+        return testForIn(g, 2);
+    });
+
+    has.add("bug-for-in-shadowed", function(g){
+        return testForIn(g, 0);
+    });
+
     has.add("dom-attachevent", function(g, d){
         return has.isHostType(d, "attachEvent");
     });
@@ -36,17 +52,17 @@
         return has.isHostType(d, "createEventObject");
     });
 
-	has.add("dom-classlist", function(g, d, e){
-		var iht = has.isHostType;
-		if(!iht(e, "classList")){
-			return false;
-		}
+    has.add("dom-classlist", function(g, d, e){
+        var iht = has.isHostType;
+        if(!iht(e, "classList")){
+            return false;
+        }
 
-		var cl = e.classList;
+        var cl = e.classList;
 
-		return iht(cl, "item") && iht(cl, "contains") && iht(cl, "add") &&
-			iht(cl, "remove") && iht(cl, "toggle");
-	});
+        return iht(cl, "item") && iht(cl, "contains") && iht(cl, "add") &&
+            iht(cl, "remove") && iht(cl, "toggle");
+    });
 
     // Adapted from FuseJS
     has.add("bug-table-elements-retain-offset-dimensions-when-hidden", function(g, d, el){
@@ -74,7 +90,7 @@
         return buggy;
     });
 
-	// Adapted from FuseJS
+    // Adapted from FuseJS
     has.add("bug-computed-style-dimensions-equal-border-box", function(g, d){
         var docEl = d.documentElement,
             des = docEl.style,
