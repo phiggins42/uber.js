@@ -1,0 +1,7 @@
+{
+	"name": "über",
+	"directories": {
+		"lib": "./lib"
+	},
+	"main": "./uber.js"
+}
