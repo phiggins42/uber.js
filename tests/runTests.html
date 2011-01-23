@@ -21,18 +21,18 @@
     <script src="../has.js/detect/events.js"></script>
     <script src="../has.js/detect/features.js"></script>
     <script src="../uber.js"></script>
-    <script src="../src/array.js"></script>
-    <script src="../src/function.js"></script>
-    <script src="../src/object.js"></script>
-    <script src="../src/string.js"></script>
-    <script src="../src/promise.js"></script>
-    <script src="../src/deferred.js"></script>
-    <script src="../src/dom.js"></script>
-    <script src="../src/dom-event.js"></script>
-    <script src="../src/html.js"></script>
-    <script src="../src/dispatcher.js"></script>
-    <script src="../src/pubsub.js"></script>
-    <script src="../src/xhr.js"></script>
+    <script src="../lib/array.js"></script>
+    <script src="../lib/function.js"></script>
+    <script src="../lib/object.js"></script>
+    <script src="../lib/string.js"></script>
+    <script src="../lib/promise.js"></script>
+    <script src="../lib/deferred.js"></script>
+    <script src="../lib/dom.js"></script>
+    <script src="../lib/dom-event.js"></script>
+    <script src="../lib/html.js"></script>
+    <script src="../lib/dispatcher.js"></script>
+    <script src="../lib/pubsub.js"></script>
+    <script src="../lib/xhr.js"></script>
 
     <script src="test.js"></script>
 
@@ -191,6 +191,19 @@
                     uber.disconnect(a, "foo");
                     a.foo();
                     return originalCalled && a.foo === originalFoo && !bCalled && !cCalled;
+                },
+                function(){
+                    var beforeOK, dCalled, eCalled;
+                    originalCalled = beforeOK = dCalled = eCalled = false;
+                    var d = uber.before(a, "foo", function(){
+                        beforeOK = !originalCalled && !eCalled;
+                        dCalled = true;
+                    });
+                    var e = uber.after(a, "foo", function(){
+                        eCalled = true;
+                    });
+                    a.foo();
+                    return originalCalled && beforeOK && dCalled && eCalled;
                 }
             ]);
         })();
