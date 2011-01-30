@@ -1,3 +1,3 @@
-[submodule "has.js"]
-	path = has.js
-	url = git://github.com/phiggins42/has.js.git
+[submodule "third-party/has"]
+	path = third-party/has
+	url = git://github.com/kriszyp/has.js.git

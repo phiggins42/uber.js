@@ -49,144 +49,119 @@
         }
     </style>
 
-    <script src="../has.js/has.js"></script>
-    <script src="../has.js/detect/bugs.js"></script>
-    <script src="../has.js/detect/dom.js"></script>
-    <script src="../has.js/detect/css.js"></script>
-    <script src="../has.js/detect/function.js"></script>
-    <script src="../has.js/detect/object.js"></script>
-    <script src="../has.js/detect/events.js"></script>
-    <script src="../has.js/detect/features.js"></script>
-    <script src="../uber.js"></script>
-    <script src="../src/function.js"></script>
-    <script src="../src/object.js"></script>
-    <script src="../src/promise.js"></script>
-    <script src="../src/deferred.js"></script>
-    <script src="../src/deferreds.js"></script>
-    <script src="../src/dom.js"></script>
-    <script src="../src/dom-event.js"></script>
-    <script src="../src/html.js"></script>
+	<script src="../third-party/require.js"></script>
+	<script>
+		require({
+			packages: [
+				{
+					name: "has",
+					lib: "detect",
+					main: "has"
+				},
+				{
+					name: "uber",
+					location: "..",
+					main: "uber"
+				}
+			]
+		});
 
-    <script src="test.js"></script>
+		(function(global){
+			require(["./test", "uber/dom", "uber/dom-event", "uber/html", "has/css", "has/bugs"],
+			function(t, dom, event, html, has){
+				window.location.hash = "";
+				t.registerTest("byId", function(){
+					var te = dom.byId("testelement");
+					return te && te.id === "testelement";
+				});
+				t.registerTest("getStyleName", function(){
+					return html.getStyleName("float") === html.floatProperty;
+				});
+				t.registerTest("setSelectable", function(){
+					var te = dom.byId("testelement");
+					html.setSelectable(te, false);
+					if(has("css-selectable")){
+						var name = html.getStyleName("userSelect");
+						return te.style[name] == "none";
+					}else if(has("bug-properties-are-attributes")){
+						return has.isHostType(te, "attributes") && has.isHostType(te.attributes, "unselectable") && te.attributes.unselectable.value == "on";
+					}else{
+						return "n/a";
+					}
+				});
+				t.registerTest("setOpacity/getOpacity", function(){
+					var te = dom.byId("testelement"),
+						name = html.getStyleName("opacity");
+
+					html.setOpacity(te, 0.5);
+					if(has("css-opacity-filter") || !!name){
+						return html.getOpacity(te) == 0.5;
+					}else{
+						return "n/a";
+					}
+				});
+				t.registerTest("isVisible", function(){
+					return !html.isVisible(dom.byId("test_cell"));
+				});
+				(function(){
+					var input, container, link, a, b, c, aCalled, bCalled, cCalled;
+					t.registerTests("listen", [
+						function(){
+							input = dom.byId("test_input");
+							container = dom.byId("hiddenContainer");
+							a = event.listen(input, "onclick", function(evt){
+								aCalled = this === input && event.getEventTarget(evt) === input;
+							});
+							b = event.listen(input, "onclick", function(evt){
+								event.stopPropagation(evt);
+								bCalled = this === input && event.getEventTarget(evt) === input;
+							});
+							c = event.listen(container, "onclick", function(evt){
+								cCalled = this === container && event.getEventTarget(evt) === input;
+							});
+							b.pause();
+							aCalled = bCalled = cCalled = false;
+							event.fireEvent(input, "click");
+							return aCalled && !bCalled && cCalled;
+						},
+						function(){
+							a.pause();
+							aCalled = bCalled = cCalled = false;
+							event.fireEvent(input, "click");
+							return !aCalled && !bCalled && cCalled;
+						},
+						function(){
+							a.resume();
+							b.resume();
+							aCalled = bCalled = cCalled = false;
+							event.fireEvent(input, "click");
+							return aCalled && bCalled && !cCalled;
+						}
+					]);
+					t.registerTest("stopListening", function(){
+						event.stopListening(input, "onclick");
+						return !_uberEventData[dom.getNodeId(input)][event.normalizeEventName("onclick")];
+					});
+					t.registerTest("preventDefault", function(){
+						link = dom.byId("hiddenLink");
+						event.listen(link, "onclick", function(evt){
+							event.preventDefault(evt);
+						});
+						event.fireEvent(link, "click");
+
+						return global.location.hash != "#foo";
+					});
+					t.registerTest("destroyElement", function(){
+						event.listen(input, "onclick", function(){});
+						dom.destroyElement(container);
+						return !_uberEventData[dom.getNodeId(input)] && !_uberEventData[dom.getNodeId(link)];
+					});
+				})();
+			});
+		})(this);
+	</script>
 
     <script>
-        window.location.hash = "";
-        registerTest("byId", function(){
-            var te = uber.byId("testelement");
-            return te && te.id === "testelement";
-        });
-        registerTest("getStyleName", function(){
-            return uber.getStyleName("float") === uber.floatProperty;
-        });
-        registerTest("setSelectable", function(){
-            var te = uber.byId("testelement");
-            uber.setSelectable(te, false);
-            if(has("css-selectable")){
-                var name = uber.getStyleName("userSelect");
-                return te.style[name] == "none";
-            }else if(has("bug-properties-are-attributes")){
-                return uber.isHostType(te, "attributes") && uber.isHostType(te.attributes, "unselectable") && te.attributes.unselectable.value == "on";
-            }else{
-                return "n/a";
-            }
-        });
-        registerTest("setOpacity/getOpacity", function(){
-            var te = uber.byId("testelement"),
-                name = uber.getStyleName("opacity");
-
-            uber.setOpacity(te, 0.5);
-            if(has("css-opacity-filter") || !!name){
-                return uber.getOpacity(te) == 0.5;
-            }else{
-                return "n/a";
-            }
-        });
-        registerTest("isVisible", function(){
-            return !uber.isVisible(uber.byId("test_cell"));
-        });
-        (function(global){
-            var input, container, link, a, b, c, aCalled, bCalled, cCalled;
-            registerTests("listen", [
-                function(){
-                    input = uber.byId("test_input");
-                    container = uber.byId("hiddenContainer");
-                    a = uber.listen(input, "onclick", function(evt){
-                        aCalled = this === input && uber.getEventTarget(evt) === input;
-                    });
-                    b = uber.listen(input, "onclick", function(evt){
-                        uber.stopPropagation(evt);
-                        bCalled = this === input && uber.getEventTarget(evt) === input;
-                    });
-                    c = uber.listen(container, "onclick", function(evt){
-                        cCalled = this === container && uber.getEventTarget(evt) === input;
-                    });
-                    b.pause();
-                    aCalled = bCalled = cCalled = false;
-                    uber.fireEvent(input, "click");
-                    return aCalled && !bCalled && cCalled;
-                },
-                function(){
-                    a.pause();
-                    aCalled = bCalled = cCalled = false;
-                    uber.fireEvent(input, "click");
-                    return !aCalled && !bCalled && cCalled;
-                },
-                function(){
-                    a.resume();
-                    b.resume();
-                    aCalled = bCalled = cCalled = false;
-                    uber.fireEvent(input, "click");
-                    return aCalled && bCalled && !cCalled;
-                }
-            ]);
-            registerTest("stopListening", function(){
-                uber.stopListening(input, "onclick");
-                return !uber._eventData[uber.getNodeId(input)][uber.normalizeEventName("onclick")];
-            });
-            registerTest("preventDefault", function(){
-                link = uber.byId("hiddenLink");
-                uber.listen(link, "onclick", function(evt){
-                    uber.preventDefault(evt);
-                });
-                uber.fireEvent(link, "click");
-
-                return global.location.hash != "#foo";
-            });
-            registerTest("destroyElement", function(){
-                uber.listen(input, "onclick", function(){});
-                uber.destroyElement(container);
-                return !uber._eventData[uber.getNodeId(input)] && !uber._eventData[uber.getNodeId(link)];
-            });
-        })(this);
-        /*function runTests(){
-            var hChild = uber.byId("hiddenChild");
-
-            outputResult("getComputedStyleValue",
-                uber.getComputedStyleValue(hChild, "color") ==
-                uber.getComputedStyleValue(uber.getParentNode(hChild), "color")
-            );
-            outputResult("isVisible", !uber.isVisible(uber.byId("test_cell")));
-
-            var to = uber.byId("testOpacity"),
-                toc1 = uber.byId("testOpacityChild1"),
-                toc2 = uber.byId("testOpacityChild2");
-
-            uber.setOpacity(to, 0.5);
-            uber.setOpacity(toc2, 0.5);
-            outputResult("setOpacity", uber.getOpacity(to) == 0.5);
-            outputResult("setOpacity, again", uber.getOpacity(toc1) == 1.0 && uber.getComputedOpacity(toc1) == 0.5 && uber.getOpacity(toc2) == 0.5 && uber.getComputedOpacity(toc2) == 0.25);
-
-            var cb = uber.byId("contentBox"),
-                cpb = uber.byId("contentPaddingBox");
-
-            if(!has("css-content-box")){
-                outputResult("getContentWidth", uber.getContentWidth(cb) == 198);
-                outputResult("getContentWidth, again", uber.getContentWidth(cpb) == 196);
-            }else{
-                outputResult("getContentWidth, content-box", uber.getContentWidth(cb) == 200);
-                outputResult("getContentWidth, content-box, again", uber.getContentWidth(cpb) == 200);
-            }
-        }*/
     </script>
 </head>
 <body>

@@ -10,69 +10,62 @@
         }
     </style>
 
-    <script src="../has.js/has.js"></script>
-    <script src="../has.js/detect/array.js"></script>
-    <script src="../has.js/detect/strings.js"></script>
-    <script src="../has.js/detect/bugs.js"></script>
-    <script src="../has.js/detect/dom.js"></script>
-    <script src="../has.js/detect/css.js"></script>
-    <script src="../has.js/detect/function.js"></script>
-    <script src="../has.js/detect/object.js"></script>
-    <script src="../has.js/detect/events.js"></script>
-    <script src="../has.js/detect/features.js"></script>
-    <script src="../uber.js"></script>
-    <script src="../lib/array.js"></script>
-    <script src="../lib/function.js"></script>
-    <script src="../lib/object.js"></script>
-    <script src="../lib/string.js"></script>
-    <script src="../lib/promise.js"></script>
-    <script src="../lib/deferred.js"></script>
-    <script src="../lib/dom.js"></script>
-    <script src="../lib/dom-event.js"></script>
-    <script src="../lib/html.js"></script>
-    <script src="../lib/dispatcher.js"></script>
-    <script src="../lib/pubsub.js"></script>
-    <script src="../lib/xhr.js"></script>
+	<script src="../third-party/require.js"></script>
+	<script>
+		require({
+			packages: [
+				{
+					name: "has",
+					lib: "detect",
+					main: "has"
+				},
+				{
+					name: "uber",
+					location: "..",
+					main: "uber"
+				}
+			]
+		});
 
-    <script src="test.js"></script>
+		require(["./test", "uber/array"], function(t, array){
+			t.registerTest("indexOf", function(){
+				return array.indexOf([1,2,2,3], 2) == 1;
+			});
+			t.registerTest("lastIndexOf", function(){
+				return array.lastIndexOf([1,2,2,3], 2) == 2;
+			});
+			t.registerTest("every", function(){
+				return array.every([1,1,1,1], function(a){ return a == 1; }) &&
+					!array.every([1,2,1,1], function(a){ return a == 1; });
+			});
+			t.registerTest("some", function(){
+				return array.some([1,2,3,4], function(a){ return a == 4; }) &&
+					!array.some([1,2,3,4], function(a){ return a == 5; });
+			});
+			t.registerTest("forEach", function(){
+				var arr = [1,2,3];
+				arr[4] = 5;
+				var count = 0;
+				array.forEach(arr, function(){
+					count++;
+				});
+				return count == 4;
+			});
+			t.registerTest("map", function(){
+				return t.isEqual(array.map([1,2,3,4], function(a){ return a + 1; }), [2,3,4,5]);
+			});
+			t.registerTest("filter", function(){
+				return t.isEqual(array.filter([1,2,3,4], function(a){ return a < 4; }), [1,2,3]);
+			});
+			t.registerTest("reduce", function(){
+				return t.isEqual(array.reduce([1,2,3,4], function(a, b){ return a + b; }), 10);
+			});
+			t.registerTest("reduceRight", function(){
+				return t.isEqual(array.reduceRight([1,2,3,4], function(a, b){ return a + b; }), 10);
+			});
+		});
 
-    <script>
-        registerTest("indexOf", function(){
-            return uber.indexOf([1,2,2,3], 2) == 1;
-        });
-        registerTest("lastIndexOf", function(){
-            return uber.lastIndexOf([1,2,2,3], 2) == 2;
-        });
-        registerTest("every", function(){
-            return uber.every([1,1,1,1], function(a){ return a == 1; }) &&
-                !uber.every([1,2,1,1], function(a){ return a == 1; });
-        });
-        registerTest("some", function(){
-            return uber.some([1,2,3,4], function(a){ return a == 4; }) &&
-                !uber.some([1,2,3,4], function(a){ return a == 5; });
-        });
-        registerTest("forEach", function(){
-            var arr = [1,2,3];
-            arr[4] = 5;
-            var count = 0;
-            uber.forEach(arr, function(){
-                count++;
-            });
-            return count == 4;
-        });
-        registerTest("map", function(){
-            return isEqual(uber.map([1,2,3,4], function(a){ return a + 1; }), [2,3,4,5]);
-        });
-        registerTest("filter", function(){
-            return isEqual(uber.filter([1,2,3,4], function(a){ return a < 4; }), [1,2,3]);
-        });
-        registerTest("reduce", function(){
-            return isEqual(uber.reduce([1,2,3,4], function(a, b){ return a + b; }), 10);
-        });
-        registerTest("reduceRight", function(){
-            return isEqual(uber.reduceRight([1,2,3,4], function(a, b){ return a + b; }), 10);
-        });
-        (function(){
+		require(["./test", "uber/function", "uber/object"], function(t, func, object){
             var obj1 = {
                 prop: "foo"
             };
@@ -85,85 +78,87 @@
                     return "obj2";
                 }
             };
-            registerTest("bind", function(){
-                var b1 = uber.bind(obj2.method, obj1);
-                var b2 = uber.bind(obj2.method, obj2, "foo");
+            t.registerTest("bind", function(){
+                var b1 = func.bind(obj2.method, obj1);
+                var b2 = func.bind(obj2.method, obj2, "foo");
                 return b1() == "foo" && b2() == "foo bar";
             });
-            registerTest("curry", function(){
-                var c1 = uber.curry(obj2.method, "foo");
+            t.registerTest("curry", function(){
+                var c1 = func.curry(obj2.method, "foo");
                 return c1() == "foo none" && c1.call(obj1) == "foo foo";
             });
 
-            registerTest("forIn", function(){
+            t.registerTest("forIn", function(){
                 // forIn should not skip toString (IE) and shouldn't double each key (Saf2)
                 var count = 0;
-                uber.forIn(obj2, function(){ count++; });
+                object.forIn(obj2, function(){ count++; });
 
                 return count == 3;
             });
 
-            registerTest("keys", function(){
-                return uber.keys(obj2).length == 3;
+            t.registerTest("keys", function(){
+                return object.keys(obj2).length == 3;
             });
 
-            var obj3 = uber.create(obj2, {
+            var obj3 = object.create(obj2, {
                 prop1: "baz"
             });
-            registerTest("hasKey", function(){
-                return uber.hasKey(obj3, "prop1") && !uber.hasKey(obj3, "method");
+            t.registerTest("hasKey", function(){
+                return object.hasKey(obj3, "prop1") && !object.hasKey(obj3, "method");
             });
 
-            registerTest("create", function(){
+            t.registerTest("create", function(){
                 var result = obj3.prop1 == "baz" && ("prop" in obj3) && obj3.prop == "bar";
                 obj2.prop = "blah";
                 return result && obj3.prop == "blah";
             });
-        })();
 
-        registerTest("isArray", function(){
-            return uber.isArray([]);
-        });
-        registerTest("isFunction", function(){
-            return uber.isFunction(function(){});
-        });
-        registerTest("isString", function(){
-            return uber.isString("");
-        });
-        registerTest("isNumber", function(){
-            return uber.isNumber(1000) && !uber.isNumber(Infinity);
-        });
-        registerTest("isRegExp", function(){
-            return uber.isRegExp(/^$/);
-        });
+			t.registerTest("isArray", function(){
+				return object.isArray([]);
+			});
+			t.registerTest("isFunction", function(){
+				return object.isFunction(function(){});
+			});
+			t.registerTest("isString", function(){
+				return object.isString("");
+			});
+			t.registerTest("isNumber", function(){
+				return object.isNumber(1000) && !object.isNumber(Infinity);
+			});
+			t.registerTest("isRegExp", function(){
+				return object.isRegExp(/^$/);
+			});
+		});
 
-        registerTest("trim", function(){
-            return uber.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029") == 'asdf' &&
-                uber.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\uFEFFasdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF") == 'asdf\uFEFFasdf';
-        });
+		require(["./test", "uber/string"], function(t, string){
+			t.registerTest("trim", function(){
+				return string.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029") == 'asdf' &&
+					string.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\uFEFFasdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF") == 'asdf\uFEFFasdf';
+			});
+		});
 
-        (function(){
-            registerTest("promise/deferred", function(){
-                var d = new uber.Deferred;
+		require(["./test", "uber/promise", "uber/deferred"], function(t, prms, defd){
+            t.registerTest("promise/deferred", function(){
+                var d = new defd.Deferred;
                 var a1, a2, a3, a4;
                 d.then(function(arg){ a1 = arg; return 2; }).then(function(arg){ a2 = arg; return 3; });
                 d.then(function(arg){ a3 = arg; return 4; });
-                uber.when(d, function(arg){ a4 = arg; });
+                prms.when(d, function(arg){ a4 = arg; });
                 d.resolve(1);
 
                 return a1 == 1 && a2 == 2 && a3 == 1 && a4 == 1;
             });
-        })();
+		});
 
-        (function(){
+		require(["./test", "uber/dispatcher"], function(t, disp){
             var originalCalled, bCalled, cCalled;
             originalCalled = bCalled = cCalled = false;
             var a = { foo: function(){ originalCalled = true; return 1; } };
             var originalFoo = a.foo;
-            var b = uber.connect(a, "foo", function(){ bCalled = true; return 2; });
-            var c = uber.connect(a, "foo", function(){ cCalled = true; return 3; });
+            var b = disp.connect(a, "foo", function(){ bCalled = true; return 2; });
+            var c = disp.connect(a, "foo", function(){ cCalled = true; return 3; });
 
-            registerTests("connect", [
+            t.registerTests("connect", [
                 function(){
                     var res = a.foo();
                     return res == 1 && originalCalled && bCalled && cCalled;
@@ -188,74 +183,76 @@
                 },
                 function(){
                     originalCalled = bCalled = cCalled = false;
-                    uber.disconnect(a, "foo");
+                    disp.disconnect(a, "foo");
                     a.foo();
                     return originalCalled && a.foo === originalFoo && !bCalled && !cCalled;
                 },
                 function(){
                     var beforeOK, dCalled, eCalled;
                     originalCalled = beforeOK = dCalled = eCalled = false;
-                    var d = uber.before(a, "foo", function(){
+                    var d = disp.before(a, "foo", function(){
                         beforeOK = !originalCalled && !eCalled;
                         dCalled = true;
                     });
-                    var e = uber.after(a, "foo", function(){
+                    var e = disp.after(a, "foo", function(){
                         eCalled = true;
                     });
                     a.foo();
                     return originalCalled && beforeOK && dCalled && eCalled;
                 }
             ]);
-        })();
-        (function(){
-            var aCalled, bCalled, cCalled, dCalled;
-            var a = uber.subscribe("some:foo", function(args){ aCalled = true; });
-            var b = uber.subscribe("some:foo", function(args){ bCalled = true; });
-            var c = uber.subscribe("some:foo", function(args){ cCalled = true; });
-            var d = uber.subscribe("some:other:foo", function(args){ dCalled = true; });
+		});
 
-            registerTests("pubsub", [
+		require(["./test", "uber/pubsub"], function(t, pubsub){
+            var aCalled, bCalled, cCalled, dCalled;
+            var a = pubsub.subscribe("some:foo", function(args){ aCalled = true; });
+            var b = pubsub.subscribe("some:foo", function(args){ bCalled = true; });
+            var c = pubsub.subscribe("some:foo", function(args){ cCalled = true; });
+            var d = pubsub.subscribe("some:other:foo", function(args){ dCalled = true; });
+
+            t.registerTests("pubsub", [
                 function(){
                     aCalled = bCalled = cCalled = dCalled = false;
-                    uber.publish("some:foo");
+                    pubsub.publish("some:foo");
                     return aCalled && bCalled && cCalled && !dCalled;
                 },
                 function(){
                     aCalled = bCalled = cCalled = dCalled = false;
                     b.pause();
-                    uber.publish("some:foo");
+                    pubsub.publish("some:foo");
                     return aCalled && !bCalled && cCalled && !dCalled;
                 },
                 function(){
                     aCalled = bCalled = cCalled = dCalled = false;
-                    uber.publish("some:other:foo");
+                    pubsub.publish("some:other:foo");
                     return !aCalled && !bCalled && !cCalled && dCalled;
                 },
                 function(){
                     aCalled = bCalled = cCalled = dCalled = false;
                     b.resume();
-                    uber.publish("some:foo");
+                    pubsub.publish("some:foo");
                     return aCalled && bCalled && cCalled && !dCalled;
                 },
                 function(){
                     aCalled = bCalled = cCalled = dCalled = false;
-                    uber.cancelSubscriptions("some:foo");
-                    uber.publish("some:foo");
+                    pubsub.cancelSubscriptions("some:foo");
+                    pubsub.publish("some:foo");
                     return !aCalled && !bCalled && !cCalled && !dCalled;
                 }
             ]);
-        })();
-        (function(){
-            registerTests("xhr", [
+		});
+
+		require(["./test", "uber/deferred", "uber/xhr"], function(t, defd, xhr){
+            t.registerTests("xhr", [
                 function(){
-                    return uber.xhr("GET", { url: "test.js" }).then(function(res){
+                    return xhr.xhr("GET", { url: "test.js" }).then(function(res){
                         return res && res.status == 200 && res.responseText.slice(0, 10) == "(function(";
                     });
                 },
                 function(){
-                    var def = new uber.Deferred();
+                    var def = new defd.Deferred();
 
-                    uber.xhr("GET", { url: "test.jss" }).then(function(res){
+                    xhr.xhr("GET", { url: "test.jss" }).then(function(res){
                         def.reject();
                     },function(err){
                         def.resolve(true);
@@ -264,9 +261,9 @@
                     return def;
                 },
                 function(){
-                    var def = new uber.Deferred();
+                    var def = new defd.Deferred();
 
-                    var x = uber.xhr("GET", { url: "test.js" });
+                    var x = xhr.xhr("GET", { url: "test.js" });
                     x.then(function(res){
                         def.reject();
                     },function(err){
@@ -277,8 +274,8 @@
                     return def;
                 }
             ]);
-        })();
-    </script>
+		});
+	</script>
 </head>
 <body>
     <ul id="output"></ul>

@@ -3,30 +3,37 @@
 <head>
     <title>No Leak Test</title>
     <meta http-equiv="refresh" content="2;url=">
-    <script src="../has.js/has.js"></script>
-    <script src="../has.js/detect/array.js"></script>
-    <script src="../has.js/detect/strings.js"></script>
-    <script src="../has.js/detect/bugs.js"></script>
-    <script src="../has.js/detect/dom.js"></script>
-    <script src="../has.js/detect/events.js"></script>
-    <script src="../uber.js"></script>
-    <script src="../src/promise.js"></script>
-    <script src="../src/deferred.js"></script>
-    <script src="../src/dom.js"></script>
-    <script src="../src/dom-event.js"></script>
+
+	<script src="../third-party/require.js"></script>
+	<script>
+		require({
+			packages: [
+				{
+					name: "has",
+					lib: "detect",
+					main: "has"
+				},
+				{
+					name: "uber",
+					location: "..",
+					main: "uber"
+				}
+			]
+		});
+	</script>
 </head>
 <body>
     <!-- Adapted from https://gist.github.com/43245cbb7db4eab2ad8c -->
     <div id="container"></div>
     <script>
-        (function(){
+		require(["uber/dom"], function(dom){
             var i =-1, l = 1000, container = document.getElementById("container");
             while (++i < l){
                 var e = document.createElement("div");
                 container.appendChild(e);
-                uber.destroyElement(e);
+                dom.destroyElement(e);
             }
-        })();
+		});
     </script>
 </body>
 </html>

@@ -10,114 +10,109 @@
         }
     </style>
 
-    <script src="../has.js/has.js"></script>
-    <script src="../has.js/detect/bugs.js"></script>
-    <script src="../has.js/detect/dom.js"></script>
-    <script src="../has.js/detect/css.js"></script>
-    <script src="../has.js/detect/function.js"></script>
-    <script src="../has.js/detect/object.js"></script>
-    <script src="../has.js/detect/events.js"></script>
-    <script src="../has.js/detect/features.js"></script>
-    <script src="../uber.js"></script>
-    <script src="../src/function.js"></script>
-    <script src="../src/object.js"></script>
-    <script src="../src/promise.js"></script>
-    <script src="../src/deferred.js"></script>
-    <script src="../src/deferreds.js"></script>
-    <script src="../src/dom.js"></script>
-    <script src="../src/dom-event.js"></script>
-    <script src="../src/html.js"></script>
+	<script src="../third-party/require.js"></script>
+	<script>
+		require({
+			packages: [
+				{
+					name: "has",
+					lib: "detect",
+					main: "has"
+				},
+				{
+					name: "uber",
+					location: "..",
+					main: "uber"
+				}
+			]
+		});
 
-    <script src="test.js"></script>
-
-    <script>
-        (function(){
+		require(["./test", "uber/dom"], function(t, dom){
             var te, container;
-            registerTest("getDocument", function(){
-                te = uber.byId("testelement");
-                container = uber.byId("container");
-                return isEqual(uber.getDocument(te), uber.getDocument(container));
+            t.registerTest("getDocument", function(){
+                te = dom.byId("testelement");
+                container = dom.byId("container");
+                return t.isEqual(dom.getDocument(te), dom.getDocument(container));
             });
-            registerTest("getWindow", function(){
-                return isEqual(uber.getWindow(te), uber.getWindow(container))
+            t.registerTest("getWindow", function(){
+                return t.isEqual(dom.getWindow(te), dom.getWindow(container))
             });
-            registerTest("byId", function(){
+            t.registerTest("byId", function(){
                 return te.id == "testelement";
             });
-            registerTest("isDescendant", function(){
-                return uber.isDescendant(uber.byId("child"), container);
+            t.registerTest("isDescendant", function(){
+                return dom.isDescendant(dom.byId("child"), container);
             });
-            registerTest("destroyElement", function(){
-                uber.destroyElement(uber.byId("child"));
-                return !uber.byId("child");
+            t.registerTest("destroyElement", function(){
+                dom.destroyElement(dom.byId("child"));
+                return !dom.byId("child");
             });
-            registerTest("destroyDescendants", function(){
-                uber.destroyDescendants(uber.byId("destroy_container"));
-                return !uber.byId("destroy_child");
+            t.registerTest("destroyDescendants", function(){
+                dom.destroyDescendants(dom.byId("destroy_container"));
+                return !dom.byId("destroy_child");
             });
 
             var child1, child2, child3, child4, child5, child6, child7;
 
-            registerTests("insertBefore", [
+            t.registerTests("insertBefore", [
                 function(){
                     child1 = document.createElement("div");
                     container.appendChild(child1);
                     child2 = document.createElement("div");
-                    uber.insertBefore(child2, child1);
+                    dom.insertBefore(child2, child1);
                     return child2 === container.firstChild;
                 },
                 function(){
                     child3 = document.createElement("div");
-                    uber.insertBefore(child3, child1);
+                    dom.insertBefore(child3, child1);
                     return child3 === child2.nextSibling;
                 }
             ]);
-            registerTests("insertAfter", [
+            t.registerTests("insertAfter", [
                 function(){
                     child4 = document.createElement("div");
-                    uber.insertAfter(child4, child2);
+                    dom.insertAfter(child4, child2);
                     return child4 === child2.nextSibling;
                 },
                 function(){
                     child5 = document.createElement("div");
-                    uber.insertAfter(child5, child1);
+                    dom.insertAfter(child5, child1);
                     return child5 === container.lastChild;
                 }
             ]);
-            registerTest("insertFirst", function(){
+            t.registerTest("insertFirst", function(){
                 child6 = document.createElement("div");
-                uber.insertFirst(child6, container);
+                dom.insertFirst(child6, container);
                 return child6 === container.firstChild && child6.nextSibling === child2;
             });
-            registerTest("insertOnly", function(){
+            t.registerTest("insertOnly", function(){
                 child7 = document.createElement("div");
-                uber.insertOnly(child7, container);
+                dom.insertOnly(child7, container);
                 return child7 === container.firstChild && child7 === container.lastChild;
             });
-            registerTest("replaceNode", function(){
-                uber.replaceNode(child1, child7);
+            t.registerTest("replaceNode", function(){
+                dom.replaceNode(child1, child7);
                 return child1 === container.firstChild && child1 === container.lastChild;
             });
-            registerTests("insertAtIndex", [
+            t.registerTests("insertAtIndex", [
                 function(){
-                    uber.insertAtIndex(child2, container, 0);
+                    dom.insertAtIndex(child2, container, 0);
                     return child2 === container.firstChild && child2.nextSibling === child1;
                 },
                 function(){
-                    uber.insertAtIndex(child3, container, 17);
+                    dom.insertAtIndex(child3, container, 17);
                     return child3 === container.lastChild && child1.nextSibling === child3;
                 },
                 function(){
-                    uber.insertAtIndex(child4, container, 1);
+                    dom.insertAtIndex(child4, container, 1);
                     return child2.nextSibling === child4 && child4.nextSibling === child1;
                 }
             ]);
-        })();
+        });
     </script>
 </head>
 <body>
-    <ul id="output">
-    </ul>
+    <ul id="output"></ul>
     <div id="TestElement"></div>
     <div id="testelement"></div>
     <div id="container" style="display: none;"><div id="child"></div></div>
