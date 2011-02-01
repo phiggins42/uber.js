@@ -1,0 +1,135 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Standard has tests</title>
+
+	<style>
+		.yes {
+			color:green;
+		}
+		.no {
+			color:red;
+		}
+		.na {
+			color:blue;
+		}
+		.error {
+			background-color: red;
+			color: black;
+		}
+		#ua {
+			font-weight:bold;
+		}
+		.resultList { list-style:none; }
+		.resultList li {
+			float:left;
+			width:250px;
+			padding:5px;
+			border-bottom:1px dotted #ededed;
+		}
+		fieldset { margin-bottom:4px; }
+	</style>
+
+	<script src="../third-party/has/has.js"></script>
+	<script src="../third-party/has/detect/bugs.js"></script>
+	<script src="../third-party/has/detect/array.js"></script>
+	<script src="../third-party/has/detect/graphics.js"></script>
+	<script src="../third-party/has/detect/css.js"></script>
+	<script src="../third-party/has/detect/dates.js"></script>
+	<script src="../third-party/has/detect/dom.js"></script>
+	<script src="../third-party/has/detect/features.js"></script>
+	<script src="../third-party/has/detect/form.js"></script>
+	<script src="../third-party/has/detect/function.js"></script>
+	<script src="../third-party/has/detect/json.js"></script>
+	<script src="../third-party/has/detect/object.js"></script>
+	<script src="../third-party/has/detect/strings.js"></script>
+	<script src="../third-party/has/detect/events.js"></script>
+	<script src="../third-party/has/detect/script.js"></script>
+	<script src="../third-party/has/detect/audio.js"></script>
+	<script src="../third-party/has/detect/video.js"></script>
+</head>
+<body>
+	<h1>Uber's has tests</h1>
+
+	<p>Test running took <span id="took"></span></p>
+	<div id="output"></div>
+
+	<script>
+		var testsToRun = ["dom", "bug-for-in-skips-shadowed", "bug-for-in-repeats-shadowed", "bug-es5-trim", "bug-es5-regexp", "bug-getelementbyid-ids-names", "bug-getelementbyid-ignores-case", "native-xhr", "activex", "activex-enabled", "array-every", "array-filter", "array-foreach", "array-indexof", "array-lastindexof", "array-map", "array-reduce", "array-reduceright", "array-some", "array-slice-nodelist", "function-bind", "object-create", "object-keys", "object-defineproperties", "string-trim", "dom-addeventlistener", "dom-tagname-uppercase", "dom-create-attr", "event-metakey", "event-preventdefault", "event-stoppropagation", "event-srcelement", "event-relatedtarget", "dom-innerhtml", "dom-uniquenumber", "dom-parentelement", "dom-createevent"];
+
+		var total = 0;
+		var nao, done, data = [], html = [], bugRE = /^bug-/
+        var name, results = {}, result;
+		for(var i=testsToRun.length; i--;){
+			name = testsToRun[i];
+			try{
+				nao = +new Date;
+				result = has(name);
+				done = +new Date;
+				results[name] = result;
+			}catch(e){
+				done = +new Date;
+                results[name] = "error";
+                results[name].ERROR_MSG = e.toString();
+			}
+			total += (done - nao);
+		}
+
+		function resultClass(result, isBug, special){
+			// format bug-* tests opposite from others
+			if(result === null){
+				return "na";
+			}
+			if(result == "error"){
+				return "error";
+			}
+			if(isBug){
+				return (result ? "no" : "yes");
+			}
+			return (result ? "yes" : "no");
+		}
+
+		var categories = { 'none': [] },
+			categoryRE = /^(\w+)[-]?/;
+
+		var outputResult = function(key, i){
+			var special = "", r = results[key],
+				match = key.match(categoryRE),
+				category = match ? match[1] : 'none';
+
+			if(!(category in categories)){
+				categories[category] = [];
+			}
+			var html = categories[category];
+
+			if(r == "error"){
+				special = ": " + r.ERROR_MSG;
+			}
+
+			data.push("<input type='hidden' name='", key, "' value='", r + special ,"'>");
+			html.push("<li>", key ," <em class='", resultClass(r, bugRE.test(key)), "'>",
+				(r === null ? 'n/a' : (r == "error" ? r : !!r)) , "</em>", special, "</li>");
+		};
+
+		if(has('array-foreach')){
+			testsToRun.forEach(outputResult);
+		}else{
+			i = 0;
+			for(var key; key=testsToRun[i]; i++){
+				outputResult(key, i);
+			}
+		}
+
+		for(var j in categories){
+			if(!categories[j].length){ continue; }
+			html.push('<fieldset><legend>Results for category ', j, '</legend><ul class="resultList">');
+			html = html.concat(categories[j]);
+			html.push('</ul></fieldset>');
+		}
+
+		document.getElementById("output").innerHTML = html.join("");
+		document.getElementById("took").innerHTML = "took: " + (total) + "ms";
+	</script>
+</body>
+</html>
