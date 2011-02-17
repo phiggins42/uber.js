@@ -1,21 +1,21 @@
 /** vim: et:ts=4:sw=4:sts=4
- * @license RequireJS 0.22.0 Copyright (c) 2010, The Dojo Foundation All Rights Reserved.
+ * @license RequireJS 0.23.0 Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/requirejs for details
  */
-/*jslint plusplus: false */
+/*jslint strict: false, plusplus: false */
 /*global window: false, navigator: false, document: false, importScripts: false,
   jQuery: false, clearInterval: false, setInterval: false, self: false,
   setTimeout: false */
-"use strict";
 
 var require, define;
 (function () {
     //Change this version number for each release.
-    var version = "0.22.0",
+    var version = "0.23.0",
         commentRegExp = /(\/\*([\s\S]*?)\*\/|\/\/(.*)$)/mg,
         cjsRequireRegExp = /require\(["']([^'"\s]+)["']\)/g,
         currDirRegExp = /^\.\//,
+        jsSuffixRegExp = /\.js$/,
         ostring = Object.prototype.toString,
         ap = Array.prototype,
         aps = ap.slice,
@@ -44,7 +44,7 @@ var require, define;
             "order": "require/order"
         },
         req, cfg = {}, currentlyAddingScript, s, head, baseElement, scripts, script,
-        rePkg, src, m, dataMain, i, scrollIntervalId, setReadyState, ctx;
+        src, subPath, mainScript, dataMain, i, scrollIntervalId, setReadyState, ctx;
 
     function isFunction(it) {
         return ostring.call(it) === "[object Function]";
@@ -96,8 +96,13 @@ var require, define;
                 name: pkgObj.name,
                 location: location || pkgObj.name,
                 lib: pkgObj.lib || "lib",
-                //Remove leading dot in main, so main paths are normalized.
-                main: (pkgObj.main || "lib/main").replace(currDirRegExp, '')
+                //Remove leading dot in main, so main paths are normalized,
+                //and remove any trailing .js, since different package
+                //envs have different conventions: some use a module name,
+                //some use a file name.
+                main: (pkgObj.main || "lib/main")
+                      .replace(currDirRegExp, '')
+                      .replace(jsSuffixRegExp, '')
             };
         }
     }
@@ -387,7 +392,7 @@ var require, define;
         function updateNormalizedNames(pluginName) {
 
             var oldFullName, oldModuleMap, moduleMap, fullName, callbacks,
-                i, j, k, depArray,
+                i, j, k, depArray, existingCallbacks,
                 maps = normalizedWaiting[pluginName];
 
             if (maps) {
@@ -396,10 +401,24 @@ var require, define;
                     moduleMap = makeModuleMap(oldModuleMap.originalName, oldModuleMap.parentMap);
                     fullName = moduleMap.fullName;
                     callbacks = managerCallbacks[oldFullName];
+                    existingCallbacks = managerCallbacks[fullName];
 
                     if (fullName !== oldFullName) {
+                        //Update the specified object, but only if it is already
+                        //in there. In sync environments, it may not be yet.
+                        if (oldFullName in specified) {
+                            delete specified[oldFullName];
+                            specified[fullName] = true;
+                        }
+
                         //Update managerCallbacks to use the correct normalized name.
-                        managerCallbacks[fullName] = callbacks;
+                        //If there are already callbacks for the normalized name,
+                        //just add to them.
+                        if (existingCallbacks) {
+                            managerCallbacks[fullName] = existingCallbacks.concat(callbacks);
+                        } else {
+                            managerCallbacks[fullName] = callbacks;
+                        }
                         delete managerCallbacks[oldFullName];
 
                         //In each manager callback, update the normalized name in the depArray.
@@ -810,8 +829,8 @@ var require, define;
             var name = dep.name,
                 fullName = dep.fullName;
 
-            //Do not bother if plugin is already defined.
-            if (fullName in defined) {
+            //Do not bother if plugin is already defined or being loaded.
+            if (fullName in defined || fullName in loaded) {
                 return;
             }
 
@@ -1041,6 +1060,13 @@ var require, define;
                     requireWait = context.requireWait;
                     context.requireWait = false;
                     context.require(cfg.priority);
+                    //Trigger a resume right away, for the case when
+                    //the script with the priority load is done as part
+                    //of a data-main call. In that case the normal resume
+                    //call will not happen because the scriptCount will be
+                    //at 1, since the script for data-main is being processed.
+                    resume();
+                    //Restore previous state.
                     context.requireWait = requireWait;
                     config.priorityWait = cfg.priority;
                 }
@@ -1619,31 +1645,10 @@ var require, define;
         return null;
     };
 
-
-    //Determine what baseUrl should be if not already defined via a require config object
-    s.baseUrl = cfg.baseUrl;
-    if (isBrowser && (!s.baseUrl || !head)) {
+    //Look for a data-main script attribute, which could also adjust the baseUrl.
+    if (isBrowser) {
         //Figure out baseUrl. Get it from the script tag with require.js in it.
         scripts = document.getElementsByTagName("script");
-        if (cfg.baseUrlMatch) {
-            rePkg = cfg.baseUrlMatch;
-        } else {
-            //>>includeStart("jquery", pragmas.jquery);
-            rePkg = /(requireplugins-|require-)?jquery[\-\d\.]*(min)?\.js(\W|$)/i;
-            //>>includeEnd("jquery");
-
-            //>>includeStart("dojoConvert", pragmas.dojoConvert);
-            rePkg = /dojo\.js(\W|$)/i;
-            //>>includeEnd("dojoConvert");
-
-            //>>excludeStart("dojoConvert", pragmas.dojoConvert);
-
-            //>>excludeStart("jquery", pragmas.jquery);
-            rePkg = /(allplugins-)?require\.js(\W|$)/i;
-            //>>excludeEnd("jquery");
-
-            //>>excludeEnd("dojoConvert");
-        }
 
         for (i = scripts.length - 1; i > -1 && (script = scripts[i]); i--) {
             //Set the "head" where we can append children by
@@ -1652,35 +1657,34 @@ var require, define;
                 head = script.parentNode;
             }
 
-
             //Look for a data-main attribute to set main script for the page
-            //to load.
-            if (!dataMain && (dataMain = script.getAttribute('data-main'))) {
+            //to load. If it is there, the path to data main becomes the
+            //baseUrl, if it is not already set.
+            if ((dataMain = script.getAttribute('data-main'))) {
+                if (!cfg.baseUrl) {
+                    //Pull off the directory of data-main for use as the
+                    //baseUrl.
+                    src = dataMain.split('/');
+                    mainScript = src.pop();
+                    subPath = src.length ? src.join('/')  + '/' : './';
+
+                    //Set final config.
+                    cfg.baseUrl = subPath;
+                    //Strip off any trailing .js since dataMain is now
+                    //like a module name.
+                    dataMain = mainScript.replace(jsSuffixRegExp, '');
+                }
+
+                //Put the data-main script in the files to load.
                 cfg.deps = cfg.deps ? cfg.deps.concat(dataMain) : [dataMain];
 
-                //Favor using data-main tag as the base URL instead of
-                //trying to pattern-match src values.
-                if (!cfg.baseUrl && (src = script.src)) {
-                    src = src.split('/');
-                    src.pop();
-                    //Make sure current config gets the value.
-                    s.baseUrl = cfg.baseUrl = src.length ? src.join('/') : './';
-                }
-            }
-
-            //Using .src instead of getAttribute to get an absolute URL.
-            //While using a relative URL will be fine for script tags, other
-            //URLs used for text! resources that use XHR calls might benefit
-            //from an absolute URL.
-            if (!s.baseUrl && (src = script.src)) {
-                m = src.match(rePkg);
-                if (m) {
-                    s.baseUrl = src.substring(0, m.index);
-                    break;
-                }
+                break;
             }
         }
     }
+
+    //Set baseUrl based on config.
+    s.baseUrl = cfg.baseUrl;
 
     //****** START page load functionality ****************
     /**
@@ -1745,7 +1749,7 @@ var require, define;
                 if (!(prop in empty)) {
                     context = contexts[prop];
                     if (context.jQueryIncremented) {
-                        context.jQuery.readyWait -= 1;
+                        context.jQuery.ready(true);
                         context.jQueryIncremented = false;
                     }
                 }
