@@ -13,6 +13,7 @@
 	<script src="../third-party/require.js"></script>
 	<script>
 		require({
+            baseUrl: "../third-party",
 			packages: [
 				{
 					name: "has",
@@ -137,16 +138,30 @@
 			});
 		});
 
-		require(["./test", "uber/promise", "uber/deferred"], function(t, prms, defd){
-            t.registerTest("promise/deferred", function(){
-                var d = new defd.Deferred;
+		require(["./test", "uber/when", "uber/Deferred"], function(t, when, Deferred){
+            t.registerTest("when/deferred", function(){
+                var d = new Deferred;
                 var a1, a2, a3, a4;
                 d.then(function(arg){ a1 = arg; return 2; }).then(function(arg){ a2 = arg; return 3; });
                 d.then(function(arg){ a3 = arg; return 4; });
-                prms.when(d, function(arg){ a4 = arg; });
+                when(d, function(arg){ a4 = arg; });
                 d.resolve(1);
 
                 return a1 == 1 && a2 == 2 && a3 == 1 && a4 == 1;
+            });
+            t.registerTest("when.these", function(){
+                var d1 = new Deferred,
+                    d2 = new Deferred,
+                    result;
+
+                when.these([d1, d2], function(res){
+                    result = res[0][0] && res[0][1] == "foo" && !res[1][0] && res[1][1] == "bar";
+                });
+
+                d1.resolve("foo");
+                d2.reject("bar");
+
+                return !!result;
             });
 		});
 
@@ -310,17 +325,17 @@
             ]);
 		});
 
-		require(["./test", "uber/deferred", "uber/xhr"], function(t, defd, xhr){
+		require(["./test", "uber/Deferred", "uber/xhr"], function(t, Deferred, xhr){
             t.registerTests("xhr", [
                 function(){
-                    return xhr.xhr("GET", { url: "test.js" }).then(function(res){
+                    return xhr("GET", { url: "test.js" }).then(function(res){
                         return res && res.status == 200 && res.responseText.slice(0, 10) == "(function(";
                     });
                 },
                 function(){
-                    var def = new defd.Deferred();
+                    var def = new Deferred;
 
-                    xhr.xhr("GET", { url: "test.jss" }).then(function(res){
+                    xhr("GET", { url: "test.jss" }).then(function(res){
                         def.reject();
                     },function(err){
                         def.resolve(true);
@@ -329,9 +344,9 @@
                     return def;
                 },
                 function(){
-                    var def = new defd.Deferred();
+                    var def = new Deferred;
 
-                    var x = xhr.xhr("GET", { url: "test.js" });
+                    var x = xhr("GET", { url: "test.js" });
                     x.then(function(res){
                         def.reject();
                     },function(err){

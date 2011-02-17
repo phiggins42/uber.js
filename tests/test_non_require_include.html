@@ -21,8 +21,9 @@
     <script src="../lib/function.js"></script>
     <script src="../lib/object.js"></script>
     <script src="../lib/string.js"></script>
-    <script src="../lib/promise.js"></script>
-    <script src="../lib/deferred.js"></script>
+    <script src="../lib/Deferred.js"></script>
+    <script src="../lib/Deferreds.js"></script>
+    <script src="../lib/when.js"></script>
     <script src="../lib/dom.js"></script>
     <script src="../lib/dom-event.js"></script>
     <script src="../lib/xhr.js"></script>
@@ -39,7 +40,8 @@
 				((typeof uber != undef && typeof uber_array != undef &&
 				typeof uber_dispatcher != undef && typeof uber_function != undef &&
 				typeof uber_object != undef && typeof uber_string != undef &&
-				typeof uber_promise != undef && typeof uber_deferred != undef &&
+				typeof uber_when != undef && typeof uber_Deferred != undef &&
+                typeof uber_Deferreds != undef &&
 				typeof uber_dom != undef && typeof uber_dom_event != undef &&
 				typeof uber_xhr != undef) ? "pass" : "failed");
 

@@ -1,5 +1,5 @@
 (function(global, document){
-    define(["uber/promise", "uber/deferred", "uber/dom", "uber/dom-event"], function(promise, defd, dom, event){
+    define(["uber/when", "uber/Deferred", "uber/dom", "uber/dom-event"], function(when, Deferred, dom, event){
         var toString = {}.toString,
             func = "[object Function]",
             arr = "[object Array]"
@@ -77,14 +77,22 @@
         }
 
         function Test(kwArgs){
-            defd.Deferred.call(this, kwArgs ? kwArgs.canceller : undefined);
+            Deferred.call(this, kwArgs ? kwArgs.canceller : undefined);
 
             if(kwArgs){
                 this.name = kwArgs.name||"";
-                this.test = kwArgs.test;
+                this.test = function(){
+                    var st, et, ret;
+                    st = this.startTime = new Date;
+                    ret = kwArgs.test.apply(this, arguments);
+                    et = this.endTime = new Date;
+                    this.elapsed = et - st;
+
+                    return ret;
+                };
             }
         }
-        Test.prototype = new defd.Deferred;
+        Test.prototype = new Deferred;
         Test.prototype.constructor = Test;
 
         function TestGroup(kwArgs){
@@ -96,26 +104,19 @@
         TestGroup.prototype.constructor = TestGroup;
 
         (function(){
-            var run = function run(){
+            function run(){
                 try{
                     var self = this;
-                    this.startTime = new Date;
-                    promise.when(
+                    when(
                         this.test(),
                         function(res){
-                            self.endTime = new Date;
-                            self.elapsed = self.endTime - self.startTime;
                             self.resolve(res);
                         },
                         function(err){
-                            self.endTime = new Date;
-                            self.elapsed = self.endTime - self.startTime;
                             self.reject(err);
                         }
                     );
                 }catch(e){
-                    this.endTime = new Date;
-                    this.elapsed = this.endTime - this.startTime;
                     this.reject(e);
                 }
             };
@@ -124,7 +125,7 @@
         })();
 
         (function(){
-            var run = function run(){
+            function run(){
                 var tests = this.tests,
                     results = new Array(tests.length),
                     self = this,
@@ -147,7 +148,7 @@
                             }
                         };
                     })(i, test, tests[i+1]);
-                    promise.when(test, onTestDone, onTestDone);
+                    when(test, onTestDone, onTestDone);
                 }
 
                 this.startTime = new Date;
@@ -180,7 +181,7 @@
                         }
                     };
                 })(tests[i], tests[i+1]);
-                promise.when(tests[i], onTestDone, onTestDone);
+                when(tests[i], onTestDone, onTestDone);
             }
             tests.length && tests[0].run();
         }
