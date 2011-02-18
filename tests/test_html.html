@@ -49,24 +49,9 @@
         }
     </style>
 
-	<script src="../third-party/require.js"></script>
+	<script src="../third-party/requirejs/require.js"></script>
+	<script src="config.js"></script>
 	<script>
-		require({
-            baseUrl: "../third-party",
-			packages: [
-				{
-					name: "has",
-					lib: "detect",
-					main: "has"
-				},
-				{
-					name: "uber",
-					location: "..",
-					main: "uber"
-				}
-			]
-		});
-
 		(function(global){
 			require(["./test", "uber/dom", "uber/dom-event", "uber/html", "has/css", "has/bugs"],
 			function(t, dom, event, html, has){

@@ -4,24 +4,8 @@
     <meta charset="utf-8">
     <title>Listen test</title>
 
-	<script src="../third-party/require.js"></script>
-	<script>
-		require({
-            baseUrl: "../third-party",
-			packages: [
-				{
-					name: "has",
-					lib: "detect",
-					main: "has"
-				},
-				{
-					name: "uber",
-					location: "..",
-					main: "uber"
-				}
-			]
-		});
-	</script>
+	<script src="../third-party/requirejs/require.js"></script>
+	<script src="config.js"></script>
 </head>
 <body>
     <button id="clickMe">Click me!</button>

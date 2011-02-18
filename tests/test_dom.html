@@ -10,24 +10,9 @@
         }
     </style>
 
-	<script src="../third-party/require.js"></script>
+	<script src="../third-party/requirejs/require.js"></script>
+	<script src="config.js"></script>
 	<script>
-		require({
-            baseUrl: "../third-party",
-			packages: [
-				{
-					name: "has",
-					lib: "detect",
-					main: "has"
-				},
-				{
-					name: "uber",
-					location: "..",
-					main: "uber"
-				}
-			]
-		});
-
 		require(["./test", "uber/dom"], function(t, dom){
             var te, container;
             t.registerTest("getDocument", function(){
