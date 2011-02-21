@@ -92,6 +92,14 @@
                 function(){
                     dom.insertAtIndex(child4, container, 1);
                     return child2.nextSibling === child4 && child4.nextSibling === child1;
+                },
+                function(){
+                    dom.insertAtIndex(child5, container, -1);
+                    return child3 === container.lastChild && child5.nextSibling === child3;
+                },
+                function(){
+                    dom.insertAtIndex(child6, container, -17);
+                    return child6 === container.firstChild && child6.nextSibling === child2;
                 }
             ]);
         });
