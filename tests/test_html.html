@@ -53,12 +53,18 @@
 	<script src="config.js"></script>
 	<script>
 		(function(global){
-			require(["./test", "uber/dom", "uber/dom-event", "uber/html", "has/css", "has/bugs"],
-			function(t, dom, event, html, has){
+			require(["./test", "uber/dom", "uber/dom-event", "uber/html", "uber/array", "uber/object", "has/css", "has/bugs"],
+			function(t, dom, event, html, array, object, has){
 				window.location.hash = "";
 				t.registerTest("byId", function(){
 					var te = dom.byId("testelement");
 					return te && te.id === "testelement";
+				});
+				t.registerTest("toArray NodeList", function(){
+					var te = dom.byId("testelement");
+					var ta = array.toArray(te.childNodes);
+
+					return ta && object.isArray(ta) && ta.length == 1;
 				});
 				t.registerTest("getStyleName", function(){
 					return html.getStyleName("float") === html.floatProperty;
@@ -125,8 +131,8 @@
 						}
 					]);
 					t.registerTest("stopListening", function(){
-						event.stopListening(input, "onclick");
-						return !_uberEventData[dom.getNodeId(input)][event.normalizeEventName("onclick")];
+						event.cancelAll(input, "onclick");
+						return !_uberEventData[dom.getNodeId(input)].events[event.normalizeEventName("onclick")];
 					});
 					t.registerTest("preventDefault", function(){
 						link = dom.byId("hiddenLink");
@@ -154,7 +160,7 @@
     <ul id="output"></ul>
 
     <div id="TestElement"></div>
-    <div id="testelement"></div>
+	<div id="testelement"><span></span></div>
 
     <div id="hiddenContainer" class="hidden">
         <div id="hiddenChild"></div>
