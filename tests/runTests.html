@@ -150,59 +150,6 @@
             });
 		});
 
-		require(["./test", "uber/dispatcher"], function(t, disp){
-            var originalCalled, bCalled, cCalled;
-            originalCalled = bCalled = cCalled = false;
-            var a = { foo: function(){ originalCalled = true; return 1; } };
-            var originalFoo = a.foo;
-            var b = disp.connect(a, "foo", function(){ bCalled = true; return 2; });
-            var c = disp.connect(a, "foo", function(){ cCalled = true; return 3; });
-
-            t.registerTests("connect", [
-                function(){
-                    var res = a.foo();
-                    return res == 1 && originalCalled && bCalled && cCalled;
-                },
-                function(){
-                    originalCalled = bCalled = cCalled = false;
-                    b.pause();
-                    a.foo();
-                    return originalCalled && !bCalled && cCalled;
-                },
-                function(){
-                    originalCalled = bCalled = cCalled = false;
-                    b.resume();
-                    a.foo();
-                    return originalCalled && bCalled && cCalled;
-                },
-                function(){
-                    originalCalled = bCalled = cCalled = false;
-                    b.cancel();
-                    a.foo();
-                    return originalCalled && !bCalled && cCalled;
-                },
-                function(){
-                    originalCalled = bCalled = cCalled = false;
-                    disp.disconnect(a, "foo");
-                    a.foo();
-                    return originalCalled && a.foo === originalFoo && !bCalled && !cCalled;
-                },
-                function(){
-                    var beforeOK, dCalled, eCalled;
-                    originalCalled = beforeOK = dCalled = eCalled = false;
-                    var d = disp.before(a, "foo", function(){
-                        beforeOK = !originalCalled && !eCalled;
-                        dCalled = true;
-                    });
-                    var e = disp.after(a, "foo", function(){
-                        eCalled = true;
-                    });
-                    a.foo();
-                    return originalCalled && beforeOK && dCalled && eCalled;
-                }
-            ]);
-		});
-
 		require(["./test", "uber/aop"], function(t, aop){
 			var tests;
 			(function(){

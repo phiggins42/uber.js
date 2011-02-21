@@ -16,7 +16,7 @@
     <script src="../third-party/has/detect/features.js"></script>
 
     <script src="../uber.js"></script>
-	<script src="../lib/dispatcher.js"></script>
+	<script src="../lib/aop.js"></script>
     <script src="../lib/array.js"></script>
     <script src="../lib/function.js"></script>
     <script src="../lib/object.js"></script>
@@ -38,7 +38,7 @@
 
 			li.innerHTML = "Loaded: " +
 				((typeof uber != undef && typeof uber_array != undef &&
-				typeof uber_dispatcher != undef && typeof uber_function != undef &&
+				typeof uber_aop != undef && typeof uber_function != undef &&
 				typeof uber_object != undef && typeof uber_string != undef &&
 				typeof uber_when != undef && typeof uber_Deferred != undef &&
                 typeof uber_Deferreds != undef &&
