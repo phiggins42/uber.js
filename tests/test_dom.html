@@ -26,8 +26,14 @@
             t.registerTest("byId", function(){
                 return te.id == "testelement";
             });
+            t.registerTest("getParentNode", function(){
+                return dom.getParentNode(dom.byId("child")) === container;
+            });
             t.registerTest("isDescendant", function(){
                 return dom.isDescendant(dom.byId("child"), container);
+            });
+            t.registerTest("getNodeName", function(){
+                return dom.getNodeName(container) == "DIV";
             });
             t.registerTest("destroyElement", function(){
                 dom.destroyElement(dom.byId("child"));
