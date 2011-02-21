@@ -49,118 +49,115 @@
         }
     </style>
 
-	<script src="../third-party/requirejs/require.js"></script>
-	<script src="config.js"></script>
-	<script>
-		(function(global){
-			require(["./test", "uber/dom", "uber/dom-event", "uber/html", "uber/array", "uber/object", "has/css", "has/bugs"],
-			function(t, dom, event, html, array, object, has){
-				window.location.hash = "";
-				t.registerTest("byId", function(){
-					var te = dom.byId("testelement");
-					return te && te.id === "testelement";
-				});
-				t.registerTest("toArray NodeList", function(){
-					var te = dom.byId("testelement");
-					var ta = array.toArray(te.childNodes);
-
-					return ta && object.isArray(ta) && ta.length == 1;
-				});
-				t.registerTest("getStyleName", function(){
-					return html.getStyleName("float") === html.floatProperty;
-				});
-				t.registerTest("setSelectable", function(){
-					var te = dom.byId("testelement");
-					html.setSelectable(te, false);
-					if(has("css-selectable")){
-						var name = html.getStyleName("userSelect");
-						return te.style[name] == "none";
-					}else if(has("bug-properties-are-attributes")){
-						return has.isHostType(te, "attributes") && has.isHostType(te.attributes, "unselectable") && te.attributes.unselectable.value == "on";
-					}else{
-						return "n/a";
-					}
-				});
-				t.registerTest("setOpacity/getOpacity", function(){
-					var te = dom.byId("testelement"),
-						name = html.getStyleName("opacity");
-
-					html.setOpacity(te, 0.5);
-					if(has("css-opacity-filter") || !!name){
-						return html.getOpacity(te) == 0.5;
-					}else{
-						return "n/a";
-					}
-				});
-				t.registerTest("isVisible", function(){
-					return !html.isVisible(dom.byId("test_cell"));
-				});
-				(function(){
-					var input, container, link, a, b, c, aCalled, bCalled, cCalled;
-					t.registerTests("listen", [
-						function(){
-							input = dom.byId("test_input");
-							container = dom.byId("hiddenContainer");
-							a = event.listen(input, "onclick", function(evt){
-								aCalled = this === input && event.getEventTarget(evt) === input;
-							});
-							b = event.listen(input, "onclick", function(evt){
-								event.stopPropagation(evt);
-								bCalled = this === input && event.getEventTarget(evt) === input;
-							});
-							c = event.listen(container, "onclick", function(evt){
-								cCalled = this === container && event.getEventTarget(evt) === input;
-							});
-							b.pause();
-							aCalled = bCalled = cCalled = false;
-							event.fireEvent(input, "click");
-							return aCalled && !bCalled && cCalled;
-						},
-						function(){
-							a.pause();
-							aCalled = bCalled = cCalled = false;
-							event.fireEvent(input, "click");
-							return !aCalled && !bCalled && cCalled;
-						},
-						function(){
-							a.resume();
-							b.resume();
-							aCalled = bCalled = cCalled = false;
-							event.fireEvent(input, "click");
-							return aCalled && bCalled && !cCalled;
-						}
-					]);
-					t.registerTest("stopListening", function(){
-						event.cancelAll(input, "onclick");
-						return !_uberEventData[dom.getNodeId(input)].events[event.normalizeEventName("onclick")];
-					});
-					t.registerTest("preventDefault", function(){
-						link = dom.byId("hiddenLink");
-						event.listen(link, "onclick", function(evt){
-							event.preventDefault(evt);
-						});
-						event.fireEvent(link, "click");
-
-						return global.location.hash != "#foo";
-					});
-					t.registerTest("destroyElement", function(){
-						event.listen(input, "onclick", function(){});
-						dom.destroyElement(container);
-						return !_uberEventData[dom.getNodeId(input)] && !_uberEventData[dom.getNodeId(link)];
-					});
-				})();
-			});
-		})(this);
-	</script>
-
+    <script src="../third-party/requirejs/require.js"></script>
+    <script src="config.js"></script>
     <script>
+        (function(global){
+            require(["./test", "uber/dom", "uber/dom-event", "uber/html", "uber/array", "uber/object", "has/css", "has/bugs"],
+            function(t, dom, event, html, array, object, has){
+                window.location.hash = "";
+                t.registerTest("byId", function(){
+                    var te = dom.byId("testelement");
+                    return te && te.id === "testelement";
+                });
+                t.registerTest("toArray NodeList", function(){
+                    var te = dom.byId("testelement");
+                    var ta = array.toArray(te.childNodes);
+
+                    return ta && object.isArray(ta) && ta.length == 1;
+                });
+                t.registerTest("getStyleName", function(){
+                    return html.getStyleName("float") === html.floatProperty;
+                });
+                t.registerTest("setSelectable", function(){
+                    var te = dom.byId("testelement");
+                    html.setSelectable(te, false);
+                    if(has("css-selectable")){
+                        var name = html.getStyleName("userSelect");
+                        return te.style[name] == "none";
+                    }else if(has("bug-properties-are-attributes")){
+                        return has.isHostType(te, "attributes") && has.isHostType(te.attributes, "unselectable") && te.attributes.unselectable.value == "on";
+                    }else{
+                        return "n/a";
+                    }
+                });
+                t.registerTest("setOpacity/getOpacity", function(){
+                    var te = dom.byId("testelement"),
+                        name = html.getStyleName("opacity");
+
+                    html.setOpacity(te, 0.5);
+                    if(has("css-opacity-filter") || !!name){
+                        return html.getOpacity(te) == 0.5;
+                    }else{
+                        return "n/a";
+                    }
+                });
+                t.registerTest("isVisible", function(){
+                    return !html.isVisible(dom.byId("test_cell"));
+                });
+                (function(){
+                    var input, container, link, a, b, c, aCalled, bCalled, cCalled;
+                    t.registerTests("listen", [
+                        function(){
+                            input = dom.byId("test_input");
+                            container = dom.byId("hiddenContainer");
+                            a = event.listen(input, "onclick", function(evt){
+                                aCalled = this === input && event.getEventTarget(evt) === input;
+                            });
+                            b = event.listen(input, "onclick", function(evt){
+                                event.stopPropagation(evt);
+                                bCalled = this === input && event.getEventTarget(evt) === input;
+                            });
+                            c = event.listen(container, "onclick", function(evt){
+                                cCalled = this === container && event.getEventTarget(evt) === input;
+                            });
+                            b.pause();
+                            aCalled = bCalled = cCalled = false;
+                            event.fireEvent(input, "click");
+                            return aCalled && !bCalled && cCalled;
+                        },
+                        function(){
+                            a.pause();
+                            aCalled = bCalled = cCalled = false;
+                            event.fireEvent(input, "click");
+                            return !aCalled && !bCalled && cCalled;
+                        },
+                        function(){
+                            a.resume();
+                            b.resume();
+                            aCalled = bCalled = cCalled = false;
+                            event.fireEvent(input, "click");
+                            return aCalled && bCalled && !cCalled;
+                        }
+                    ]);
+                    t.registerTest("stopListening", function(){
+                        event.cancelAll(input, "onclick");
+                        return !_uberEventData[dom.getNodeId(input)].events[event.normalizeEventName("onclick")];
+                    });
+                    t.registerTest("preventDefault", function(){
+                        link = dom.byId("hiddenLink");
+                        event.listen(link, "onclick", function(evt){
+                            event.preventDefault(evt);
+                        });
+                        event.fireEvent(link, "click");
+
+                        return global.location.hash != "#foo";
+                    });
+                    t.registerTest("destroyElement", function(){
+                        event.listen(input, "onclick", function(){});
+                        dom.destroyElement(container);
+                        return !_uberEventData[dom.getNodeId(input)] && !_uberEventData[dom.getNodeId(link)];
+                    });
+                })();
+            });
+        })(this);
     </script>
 </head>
 <body>
     <ul id="output"></ul>
 
     <div id="TestElement"></div>
-	<div id="testelement"><span></span></div>
+    <div id="testelement"><span></span></div>
 
     <div id="hiddenContainer" class="hidden">
         <div id="hiddenChild"></div>

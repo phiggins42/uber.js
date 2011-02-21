@@ -1,8 +1,8 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-	<meta charset="utf-8">
-	<title>Non-RequireJS Include</title>
+    <meta charset="utf-8">
+    <title>Non-RequireJS Include</title>
 
     <script src="../third-party/has/has.js"></script>
     <script src="../third-party/has/detect/array.js"></script>
@@ -29,24 +29,24 @@
     <script src="../lib/xhr.js"></script>
 </head>
 <body>
-	<ul id="output"></ul>
-	<script>
-		(function(){
-			var out = document.getElementById("output"),
-				li = document.createElement("li"),
-				undef = "undefined";
+    <ul id="output"></ul>
+    <script>
+        (function(){
+            var out = document.getElementById("output"),
+                li = document.createElement("li"),
+                undef = "undefined";
 
-			li.innerHTML = "Loaded: " +
-				((typeof uber != undef && typeof uber_array != undef &&
-				typeof uber_aop != undef && typeof uber_function != undef &&
-				typeof uber_object != undef && typeof uber_string != undef &&
-				typeof uber_when != undef && typeof uber_Deferred != undef &&
+            li.innerHTML = "Loaded: " +
+                ((typeof uber != undef && typeof uber_array != undef &&
+                typeof uber_aop != undef && typeof uber_function != undef &&
+                typeof uber_object != undef && typeof uber_string != undef &&
+                typeof uber_when != undef && typeof uber_Deferred != undef &&
                 typeof uber_Deferreds != undef &&
-				typeof uber_dom != undef && typeof uber_dom_event != undef &&
-				typeof uber_xhr != undef) ? "pass" : "failed");
+                typeof uber_dom != undef && typeof uber_dom_event != undef &&
+                typeof uber_xhr != undef) ? "pass" : "failed");
 
-			out.appendChild(li);
-		})();
-	</script>
+            out.appendChild(li);
+        })();
+    </script>
 </body>
 </html>

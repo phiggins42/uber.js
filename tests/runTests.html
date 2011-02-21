@@ -10,70 +10,70 @@
         }
     </style>
 
-	<script src="../third-party/requirejs/require.js"></script>
-	<script src="config.js"></script>
-	<script>
-		require(["./test", "uber/array"], function(t, array){
-			t.registerTests("indexOf", [
-				function(){
-					return array.indexOf([1,2,2,3], 2) == 1;
-				},
-				function(){
-					return array.indexOf([1,2,2,3], 2, -2) == 2;
-				},
-				function(){
-					return array.indexOf([1,2,2,3], 2, -17) == 1;
-				},
-				function(){
-					return array.indexOf([1,2,2,3], 2, 4) == -1;
-				}
-			]);
-			t.registerTests("lastIndexOf", [
-				function(){
-					return array.lastIndexOf([1,2,2,3], 2) == 2;
-				},
-				function(){
-					return array.lastIndexOf([1,2,2,3], 2, -3) == 1;
-				},
-				function(){
-					return array.lastIndexOf([1,2,2,3], 2, -17) == -1;
-				},
-				function(){
-					return array.lastIndexOf([1,2,2,3], 1, -17) == -1;
-				}
-			]);
-			t.registerTest("every", function(){
-				return array.every([1,1,1,1], function(a){ return a == 1; }) &&
-					!array.every([1,2,1,1], function(a){ return a == 1; });
-			});
-			t.registerTest("some", function(){
-				return array.some([1,2,3,4], function(a){ return a == 4; }) &&
-					!array.some([1,2,3,4], function(a){ return a == 5; });
-			});
-			t.registerTest("forEach", function(){
-				var arr = [1,2,3];
-				arr[4] = 5;
-				var count = 0;
-				array.forEach(arr, function(){
-					count++;
-				});
-				return count == 4;
-			});
-			t.registerTest("map", function(){
-				return t.isEqual(array.map([1,2,3,4], function(a){ return a + 1; }), [2,3,4,5]);
-			});
-			t.registerTest("filter", function(){
-				return t.isEqual(array.filter([1,2,3,4], function(a){ return a < 4; }), [1,2,3]);
-			});
-			t.registerTest("reduce", function(){
-				return t.isEqual(array.reduce([1,2,3,4], function(a, b){ return a + b; }), 10);
-			});
-			t.registerTest("reduceRight", function(){
-				return t.isEqual(array.reduceRight([1,2,3,4], function(a, b){ return a + b; }), 10);
-			});
-		});
+    <script src="../third-party/requirejs/require.js"></script>
+    <script src="config.js"></script>
+    <script>
+        require(["./test", "uber/array"], function(t, array){
+            t.registerTests("indexOf", [
+                function(){
+                    return array.indexOf([1,2,2,3], 2) == 1;
+                },
+                function(){
+                    return array.indexOf([1,2,2,3], 2, -2) == 2;
+                },
+                function(){
+                    return array.indexOf([1,2,2,3], 2, -17) == 1;
+                },
+                function(){
+                    return array.indexOf([1,2,2,3], 2, 4) == -1;
+                }
+            ]);
+            t.registerTests("lastIndexOf", [
+                function(){
+                    return array.lastIndexOf([1,2,2,3], 2) == 2;
+                },
+                function(){
+                    return array.lastIndexOf([1,2,2,3], 2, -3) == 1;
+                },
+                function(){
+                    return array.lastIndexOf([1,2,2,3], 2, -17) == -1;
+                },
+                function(){
+                    return array.lastIndexOf([1,2,2,3], 1, -17) == -1;
+                }
+            ]);
+            t.registerTest("every", function(){
+                return array.every([1,1,1,1], function(a){ return a == 1; }) &&
+                    !array.every([1,2,1,1], function(a){ return a == 1; });
+            });
+            t.registerTest("some", function(){
+                return array.some([1,2,3,4], function(a){ return a == 4; }) &&
+                    !array.some([1,2,3,4], function(a){ return a == 5; });
+            });
+            t.registerTest("forEach", function(){
+                var arr = [1,2,3];
+                arr[4] = 5;
+                var count = 0;
+                array.forEach(arr, function(){
+                    count++;
+                });
+                return count == 4;
+            });
+            t.registerTest("map", function(){
+                return t.isEqual(array.map([1,2,3,4], function(a){ return a + 1; }), [2,3,4,5]);
+            });
+            t.registerTest("filter", function(){
+                return t.isEqual(array.filter([1,2,3,4], function(a){ return a < 4; }), [1,2,3]);
+            });
+            t.registerTest("reduce", function(){
+                return t.isEqual(array.reduce([1,2,3,4], function(a, b){ return a + b; }), 10);
+            });
+            t.registerTest("reduceRight", function(){
+                return t.isEqual(array.reduceRight([1,2,3,4], function(a, b){ return a + b; }), 10);
+            });
+        });
 
-		require(["./test", "uber/function", "uber/object"], function(t, func, object){
+        require(["./test", "uber/function", "uber/object"], function(t, func, object){
             var obj1 = {
                 prop: "foo"
             };
@@ -121,31 +121,31 @@
                 return result && obj3.prop == "blah";
             });
 
-			t.registerTest("isArray", function(){
-				return object.isArray([]);
-			});
-			t.registerTest("isFunction", function(){
-				return object.isFunction(function(){});
-			});
-			t.registerTest("isString", function(){
-				return object.isString("");
-			});
-			t.registerTest("isNumber", function(){
-				return object.isNumber(1000) && !object.isNumber(Infinity);
-			});
-			t.registerTest("isRegExp", function(){
-				return object.isRegExp(/^$/);
-			});
-		});
+            t.registerTest("isArray", function(){
+                return object.isArray([]);
+            });
+            t.registerTest("isFunction", function(){
+                return object.isFunction(function(){});
+            });
+            t.registerTest("isString", function(){
+                return object.isString("");
+            });
+            t.registerTest("isNumber", function(){
+                return object.isNumber(1000) && !object.isNumber(Infinity);
+            });
+            t.registerTest("isRegExp", function(){
+                return object.isRegExp(/^$/);
+            });
+        });
 
-		require(["./test", "uber/string"], function(t, string){
-			t.registerTest("trim", function(){
-				return string.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029") == 'asdf' &&
-					string.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\uFEFFasdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF") == 'asdf\uFEFFasdf';
-			});
-		});
+        require(["./test", "uber/string"], function(t, string){
+            t.registerTest("trim", function(){
+                return string.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029") == 'asdf' &&
+                    string.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\uFEFFasdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF") == 'asdf\uFEFFasdf';
+            });
+        });
 
-		require(["./test", "uber/when", "uber/Deferred"], function(t, when, Deferred){
+        require(["./test", "uber/when", "uber/Deferred"], function(t, when, Deferred){
             t.registerTest("when/deferred", function(){
                 var d = new Deferred;
                 var a1, a2, a3, a4;
@@ -170,77 +170,77 @@
 
                 return !!result;
             });
-		});
+        });
 
-		require(["./test", "uber/aop"], function(t, aop){
-			var tests;
-			(function(){
-				var originalCalled, bCalled, cCalled, dCalled, eCalled,
-					obj, originalFoo, a, b, c, d;
-				originalCalled = bCalled = cCalled = dCalled = eCalled = false;
+        require(["./test", "uber/aop"], function(t, aop){
+            var tests;
+            (function(){
+                var originalCalled, bCalled, cCalled, dCalled, eCalled,
+                    obj, originalFoo, a, b, c, d;
+                originalCalled = bCalled = cCalled = dCalled = eCalled = false;
 
-				obj = { foo: function(){ originalCalled = true; return 2; } };
-				originalFoo = obj.foo;
+                obj = { foo: function(){ originalCalled = true; return 2; } };
+                originalFoo = obj.foo;
 
-				a = aop.before(obj, "foo", function(){ aCalled = true; return 0; });
-				b = aop.before(obj, "foo", function(){ bCalled = true; return 1; });
-				c = aop.after(obj, "foo", function(){ cCalled = true; return 3; });
-				d = aop.after(obj, "foo", function(){ dCalled = true; return 4; });
+                a = aop.before(obj, "foo", function(){ aCalled = true; return 0; });
+                b = aop.before(obj, "foo", function(){ bCalled = true; return 1; });
+                c = aop.after(obj, "foo", function(){ cCalled = true; return 3; });
+                d = aop.after(obj, "foo", function(){ dCalled = true; return 4; });
 
-				tests = [
-					function(){
-						var res = obj.foo();
-						return res == 2 && aCalled && bCalled && originalCalled && cCalled && dCalled;
-					},
-					function(){
-						aCalled = bCalled = originalCalled = cCalled = dCalled = false;
-						a.pause();
-						c.pause();
-						obj.foo();
-						return !aCalled && bCalled && !cCalled && dCalled && originalCalled;
-					},
-					function(){
-						aCalled = bCalled = originalCalled = cCalled = dCalled = false;
-						a.resume();
-						c.resume();
-						obj.foo();
-						return aCalled && bCalled && cCalled && dCalled && originalCalled;
-					},
-					function(){
-						aCalled = bCalled = originalCalled = cCalled = dCalled = false;
-						a.stop();
-						c.stop();
-						a.resume();
-						c.resume();
-						obj.foo();
-						return !aCalled && bCalled && !cCalled && dCalled && originalCalled;
-					}
-				];
-			})();
+                tests = [
+                    function(){
+                        var res = obj.foo();
+                        return res == 2 && aCalled && bCalled && originalCalled && cCalled && dCalled;
+                    },
+                    function(){
+                        aCalled = bCalled = originalCalled = cCalled = dCalled = false;
+                        a.pause();
+                        c.pause();
+                        obj.foo();
+                        return !aCalled && bCalled && !cCalled && dCalled && originalCalled;
+                    },
+                    function(){
+                        aCalled = bCalled = originalCalled = cCalled = dCalled = false;
+                        a.resume();
+                        c.resume();
+                        obj.foo();
+                        return aCalled && bCalled && cCalled && dCalled && originalCalled;
+                    },
+                    function(){
+                        aCalled = bCalled = originalCalled = cCalled = dCalled = false;
+                        a.stop();
+                        c.stop();
+                        a.resume();
+                        c.resume();
+                        obj.foo();
+                        return !aCalled && bCalled && !cCalled && dCalled && originalCalled;
+                    }
+                ];
+            })();
 
-			(function(){
-				// test the order of methods executed
-				var obj, originalCalled, bCalled, cCalled, dCalled, eCalled;
+            (function(){
+                // test the order of methods executed
+                var obj, originalCalled, bCalled, cCalled, dCalled, eCalled;
 
-				originalCalled = bCalled = cCalled = dCalled = eCalled = false;
+                originalCalled = bCalled = cCalled = dCalled = eCalled = false;
 
-				obj = { foo: function(){ originalCalled = aCalled && bCalled && !cCalled && !dCalled; } };
+                obj = { foo: function(){ originalCalled = aCalled && bCalled && !cCalled && !dCalled; } };
 
-				aop.before(obj, "foo", function(){ bCalled = aCalled && !originalCalled && !cCalled && !dCalled; });
-				aop.before(obj, "foo", function(){ aCalled = !bCalled && !originalCalled && !cCalled && !dCalled; });
-				aop.after(obj, "foo", function(){ cCalled = aCalled && bCalled && originalCalled && !dCalled; });
-				aop.after(obj, "foo", function(){ dCalled = aCalled && bCalled && originalCalled && cCalled; });
+                aop.before(obj, "foo", function(){ bCalled = aCalled && !originalCalled && !cCalled && !dCalled; });
+                aop.before(obj, "foo", function(){ aCalled = !bCalled && !originalCalled && !cCalled && !dCalled; });
+                aop.after(obj, "foo", function(){ cCalled = aCalled && bCalled && originalCalled && !dCalled; });
+                aop.after(obj, "foo", function(){ dCalled = aCalled && bCalled && originalCalled && cCalled; });
 
-				tests.push(function(){
-					obj.foo();
-					return aCalled && bCalled && originalCalled && cCalled && dCalled;
-				});
-			})();
+                tests.push(function(){
+                    obj.foo();
+                    return aCalled && bCalled && originalCalled && cCalled && dCalled;
+                });
+            })();
 
-			t.registerTests("aop", tests);
-		});
+            t.registerTests("aop", tests);
+        });
 
-		require(["./test", "uber/pubsub"], function(t, pubsub){
+        require(["./test", "uber/pubsub"], function(t, pubsub){
             var aCalled, bCalled, cCalled, dCalled;
             var a = pubsub.subscribe("some:foo", function(args){ aCalled = true; });
             var b = pubsub.subscribe("some:foo", function(args){ bCalled = true; });
@@ -277,9 +277,9 @@
                     return !aCalled && !bCalled && !cCalled && !dCalled;
                 }
             ]);
-		});
+        });
 
-		require(["./test", "uber/Deferred", "uber/xhr"], function(t, Deferred, xhr){
+        require(["./test", "uber/Deferred", "uber/xhr"], function(t, Deferred, xhr){
             t.registerTests("xhr", [
                 function(){
                     return xhr("GET", { url: "test.js" }).then(function(res){
@@ -311,8 +311,8 @@
                     return def;
                 }
             ]);
-		});
-	</script>
+        });
+    </script>
 </head>
 <body>
     <ul id="output"></ul>

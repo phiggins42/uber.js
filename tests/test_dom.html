@@ -10,10 +10,10 @@
         }
     </style>
 
-	<script src="../third-party/requirejs/require.js"></script>
-	<script src="config.js"></script>
-	<script>
-		require(["./test", "uber/dom"], function(t, dom){
+    <script src="../third-party/requirejs/require.js"></script>
+    <script src="config.js"></script>
+    <script>
+        require(["./test", "uber/dom"], function(t, dom){
             var te, container;
             t.registerTest("getDocument", function(){
                 te = dom.byId("testelement");

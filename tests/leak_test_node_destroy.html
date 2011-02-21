@@ -4,21 +4,21 @@
     <title>No Leak Test</title>
     <meta http-equiv="refresh" content="2;url=">
 
-	<script src="../third-party/requirejs/require.js"></script>
-	<script src="config.js"></script>
+    <script src="../third-party/requirejs/require.js"></script>
+    <script src="config.js"></script>
 </head>
 <body>
     <!-- Adapted from https://gist.github.com/43245cbb7db4eab2ad8c -->
     <div id="container"></div>
     <script>
-		require(["uber/dom"], function(dom){
+        require(["uber/dom"], function(dom){
             var i =-1, l = 1000, container = document.getElementById("container");
             while (++i < l){
                 var e = document.createElement("div");
                 container.appendChild(e);
                 dom.destroyElement(e);
             }
-		});
+        });
     </script>
 </body>
 </html>

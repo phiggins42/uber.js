@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <title>Listen test</title>
 
-	<script src="../third-party/requirejs/require.js"></script>
-	<script src="config.js"></script>
+    <script src="../third-party/requirejs/require.js"></script>
+    <script src="config.js"></script>
 </head>
 <body>
     <button id="clickMe">Click me!</button>
@@ -14,9 +14,9 @@
     <br/>
     <textarea id="output" style="width: 400px; height: 100px;"></textarea>
     <script>
-		require(["uber/dom", "uber/dom-event"], function(dom, event){
-			var clickHandle1 = null,
-				clickHandle2 = null;
+        require(["uber/dom", "uber/dom-event"], function(dom, event){
+            var clickHandle1 = null,
+                clickHandle2 = null;
             var cm = dom.byId("clickMe");
             clickHandle1 = event.listen(cm, "onclick", function(){
                 var o = dom.byId("output");
