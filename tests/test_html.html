@@ -56,10 +56,6 @@
             require(["./test", "uber/dom", "uber/dom-event", "uber/html", "uber/array", "uber/object", "has/css", "has/bugs"],
             function(t, dom, event, html, array, object, has){
                 window.location.hash = "";
-                t.registerTest("byId", function(){
-                    var te = dom.byId("testelement");
-                    return te && te.id === "testelement";
-                });
                 t.registerTest("toArray NodeList", function(){
                     var te = dom.byId("testelement");
                     var ta = array.toArray(te.childNodes);
@@ -96,6 +92,32 @@
                     return !html.isVisible(dom.byId("test_cell"));
                 });
                 (function(){
+                    var te = dom.byId("testelement");
+                    t.registerTests("CSS class functions", [
+                        function(){
+                            html.addClass(te, "one");
+                            return (" " + te.className + " ").indexOf("one") > -1;
+                        },
+                        function(){
+                            html.addClass(te, "one");
+                            return (" " + te.className + " ").indexOf("one one") == -1;
+                        },
+                        function(){
+                            html.removeClass(te, "one");
+                            return (" " + te.className + " ").indexOf("one") == -1;
+                        },
+                        function(){
+                            html.addClass(te, "two");
+                            return !html.hasClass(te, "one") && html.hasClass(te, "two");
+                        },
+                        function(){
+                            html.toggleClass(te, "two");
+                            html.toggleClass(te, "one");
+                            return html.hasClass(te, "one") && !html.hasClass(te, "two");
+                        }
+                    ]);
+                })();
+                (function(){
                     var input, container, link, a, b, c, aCalled, bCalled, cCalled;
                     t.registerTests("listen", [
                         function(){
@@ -130,7 +152,7 @@
                             return aCalled && bCalled && !cCalled;
                         }
                     ]);
-                    t.registerTest("stopListening", function(){
+                    t.registerTest("cancelAll", function(){
                         event.cancelAll(input, "onclick");
                         return !_uberEventData[dom.getNodeId(input)].events[event.normalizeEventName("onclick")];
                     });
