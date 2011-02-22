@@ -147,14 +147,15 @@
 
         require(["./test", "uber/when", "uber/Deferred"], function(t, when, Deferred){
             t.registerTest("when/deferred", function(){
-                var d = new Deferred;
-                var a1, a2, a3, a4;
+                var d = new Deferred,
+                    whenResult,
+                    a1, a2, a3, a4;
                 d.then(function(arg){ a1 = arg; return 2; }).then(function(arg){ a2 = arg; return 3; });
                 d.then(function(arg){ a3 = arg; return 4; });
-                when(d, function(arg){ a4 = arg; });
+                whenResult = when(d, function(arg){ a4 = arg; });
                 d.resolve(1);
 
-                return a1 == 1 && a2 == 2 && a3 == 1 && a4 == 1;
+                return a1 == 1 && a2 == 2 && a3 == 1 && a4 == 1 && !!whenResult.then && !whenResult.reject;
             });
             t.registerTest("when.these", function(){
                 var d1 = new Deferred,
