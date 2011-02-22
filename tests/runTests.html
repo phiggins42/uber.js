@@ -157,20 +157,85 @@
 
                 return a1 == 1 && a2 == 2 && a3 == 1 && a4 == 1 && !!whenResult.then && !whenResult.reject;
             });
-            t.registerTest("when.these", function(){
-                var d1 = new Deferred,
-                    d2 = new Deferred,
-                    result;
+            t.registerTests("when.these", [
+                function(){
+                    var d1 = new Deferred,
+                        d2 = new Deferred,
+                        theseResult,
+                        result1, result2, err_result = false;
 
-                when.these([d1, d2], function(res){
-                    result = res[0][0] && res[0][1] == "foo" && !res[1][0] && res[1][1] == "bar";
-                });
+                    theseResult = when.these(
+                        [d1, "bar", d2],
+                        function(res){
+                            result1 = res[0][0] && res[0][1] == "foo" &&
+                                      res[1][0] && res[1][1] == "bar" &&
+                                     !res[2][0] && res[2][1] == "baz";
 
-                d1.resolve("foo");
-                d2.reject("bar");
+                            return "blah";
+                        },
+                        function(err){
+                            err_result = true;
+                        }
+                    );
 
-                return !!result;
-            });
+                    theseResult.then(function(res){
+                        result2 = res;
+                    });
+
+                    d2.reject("baz");
+                    d1.resolve("foo");
+
+                    return !err_result && !!result1 && result2 == "blah" && !!theseResult.then && !theseResult.resolve;
+                },
+                function(){
+                    var theseResult, result;
+
+                    theseResult = when.these([1,2,3], function(res){
+                        result = res[0][0] && res[0][1] == 1 &&
+                                 res[1][0] && res[1][1] == 2 &&
+                                 res[2][0] && res[2][1] == 3;
+
+                        return 4;
+                    });
+
+                    return !!result && !theseResult.then && theseResult == 4;
+                },
+                function(){
+                    var theseResult, result;
+
+                    theseResult = when.these([], function(res){
+                        result = !res.length;
+
+                        return "foo";
+                    });
+
+                    return result && theseResult == "foo";
+                },
+                function(){
+                    var result, err_result,
+                        d1 = new Deferred,
+                        d2 = new Deferred,
+                        d3 = new Deferred;
+
+                    when.these(
+                        [d1, d2, d3],
+                        function(res){
+                            result = !res;
+                        },
+                        function(err){
+                            err_result = !!err && err[0] == 1 && err[1] == "bar";
+                        },
+                        null,
+                        true
+                    );
+
+                    d1.resolve("foo");
+                    d2.reject("bar");
+                    d3.resolve("baz");
+
+                    return !!err_result && !result;
+                }
+            ]);
         });
 
         require(["./test", "uber/aop"], function(t, aop){
