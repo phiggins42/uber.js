@@ -335,12 +335,6 @@
                     b.resume();
                     pubsub.publish("some:foo");
                     return aCalled && bCalled && cCalled && !dCalled;
-                },
-                function(){
-                    aCalled = bCalled = cCalled = dCalled = false;
-                    pubsub.cancelSubscriptions("some:foo");
-                    pubsub.publish("some:foo");
-                    return !aCalled && !bCalled && !cCalled && !dCalled;
                 }
             ]);
         });
