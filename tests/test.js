@@ -76,86 +76,88 @@
             li = null;
         }
 
+        function forEach(array, callback){
+            for(var i=0, l=array.length; i<l; i++){
+                callback.call(null, array[i], i, array);
+            }
+        }
+
         function Test(kwArgs){
             Deferred.call(this, kwArgs ? kwArgs.canceller : undefined);
 
             if(kwArgs){
                 this.name = kwArgs.name||"";
-                this.test = function(){
-                    var st, et, ret;
-                    st = this.startTime = new Date;
-                    ret = kwArgs.test.apply(this, arguments);
-                    et = this.endTime = new Date;
-                    this.elapsed = et - st;
-
-                    return ret;
-                };
+                this.test = kwArgs.test;
             }
         }
         Test.prototype = new Deferred;
-        Test.prototype.constructor = Test;
+        Test.prototype.run = (function(){
+            function run(){
+                var st, et, ret,
+                    test = this.test;
+
+                if(!test){
+                    this.reject("No test provided");
+                    return;
+                }
+
+                st = this.startTime = new Date;
+                try{
+                    ret = test.apply(this, arguments);
+                }catch(e){
+                    et = this.endTime = new Date;
+                    this.elapsed = et - st;
+
+                    this.reject(e);
+                    return;
+                }
+                et = this.endTime = new Date;
+                this.elapsed = et - st;
+
+                this.resolve(ret);
+            };
+
+            return run;
+        })();
 
         function TestGroup(kwArgs){
             Test.call(this, kwArgs);
 
-            this.tests = (kwArgs.tests||[]).slice(0);
+            this.tests = (kwArgs.tests||[]).slice();
         }
         TestGroup.prototype = new Test;
-        TestGroup.prototype.constructor = TestGroup;
-
-        (function(){
-            function run(){
-                try{
-                    var self = this;
-                    when(
-                        this.test(),
-                        function(res){
-                            self.resolve(res);
-                        },
-                        function(err){
-                            self.reject(err);
-                        }
-                    );
-                }catch(e){
-                    this.reject(e);
-                }
-            };
-
-            Test.prototype.run = run;
-        })();
-
-        (function(){
+        TestGroup.prototype.run = (function(){
             function run(){
                 var tests = this.tests,
                     results = new Array(tests.length),
-                    self = this,
-                    onTestDone;
+                    self = this;
 
                 this.elapsed = 0;
-                for(var i=0, test; test=tests[i]; i++){
-                    onTestDone = (function(index, thisTest, nextTest){
-                        return function(res){
-                            if(res instanceof Error){
-                                results[index] = "error";
-                            }else{
-                                results[index] = res;
-                            }
-                            self.elapsed += thisTest.elapsed;
-                            if(nextTest){
-                                nextTest.run();
-                            }else{
-                                self.resolve(results);
-                            }
-                        };
-                    })(i, test, tests[i+1]);
+
+                forEach(tests, function(test, i){
+                    function onTestDone(res){
+                        if(res instanceof Error){
+                            results[i] = "error";
+                        }else{
+                            results[i] = res;
+                        }
+                        self.elapsed += test.elapsed;
+                        if(nextTest){
+                            nextTest.run();
+                        }else{
+                            self.resolve(results);
+                        }
+                    }
+                    var nextTest = tests[i+1];
+
                     when(test, onTestDone, onTestDone);
-                }
+                });
 
                 this.startTime = new Date;
                 tests.length && tests[0].run();
-            };
+            }
 
-            TestGroup.prototype.run = run;
+            return run;
         })();
 
         var tests = [];
@@ -165,24 +167,22 @@
         function registerTests(name, testFuncs){
             var groupTests = [];
             for(var i=0, test; test=testFuncs[i]; i++){
-                groupTests.push(new Test({ test: test }));
+                groupTests.push(new Test({ name: name + " (" + i + ")", test: test }));
             }
             tests.push(new TestGroup({ name: name + " (group)", tests: groupTests }));
         }
 
         function runTests(){
-            var onTestDone;
-            for(var i=0, l=tests.length; i<l; i++){
-                onTestDone = (function(thisTest, nextTest){
-                    return function(res){
-                        outputResult(thisTest, res);
-                        if(nextTest){
-                            nextTest.run();
-                        }
-                    };
-                })(tests[i], tests[i+1]);
-                when(tests[i], onTestDone, onTestDone);
-            }
+            forEach(tests, function(test, i){
+                function onDone(res){
+                    outputResult(test, res);
+                    if(nextTest){
+                        nextTest.run();
+                    }
+                }
+                var nextTest = tests[i+1];
+                when(test, onDone, onDone);
+            });
             tests.length && tests[0].run();
         }
 
