@@ -108,6 +108,10 @@
                     return child6 === container.firstChild && child6.nextSibling === child2;
                 }
             ]);
+
+            require.ready(function(){
+                t.runTests();
+            });
         });
     </script>
 </head>

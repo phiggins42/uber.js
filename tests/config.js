@@ -1,4 +1,4 @@
-require({
+var require = {
     baseUrl: "../third-party",
     paths: {
         require: "requirejs/require"
@@ -7,4 +7,4 @@ require({
         { name: "has", lib: "detect", main: "has" },
         { name: "uber", location: "..", main: "uber" }
     ]
-});
+};

@@ -1,5 +1,5 @@
 (function(global, document){
-    define(["uber/when", "uber/Deferred", "uber/dom", "uber/dom-event"], function(when, Deferred, dom, event){
+    define(["uber/when", "uber/Deferred", "uber/dom"], function(when, Deferred, dom){
         var toString = {}.toString,
             func = "[object Function]",
             arr = "[object Array]"
@@ -186,14 +186,13 @@
             tests.length && tests[0].run();
         }
 
-        event.domReady().then(runTests);
-
         return {
             ist: ist,
             isEqual: ist,
             outputResult: outputResult,
             registerTest: registerTest,
-            registerTests: registerTests
+            registerTests: registerTests,
+            runTests: runTests
         };
     });
 })(this, document);

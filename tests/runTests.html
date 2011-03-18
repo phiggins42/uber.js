@@ -10,10 +10,13 @@
         }
     </style>
 
-    <script src="../third-party/requirejs/require.js"></script>
     <script src="config.js"></script>
+    <script src="../third-party/requirejs/require.js"></script>
     <script>
-        require(["./test", "uber/array"], function(t, array){
+        require(["./test", "uber/array", "uber/function", "uber/object", "uber/string",
+            "uber/when", "uber/Deferred", "uber/aop", "uber/pubsub", "uber/xhr"],
+        function(t, array, func, object, string, when, Deferred, aop, pubsub, xhr){
+
             t.registerTests("indexOf", [
                 function(){
                     return array.indexOf([1,2,2,3], 2) == 1;
@@ -71,81 +74,77 @@
             t.registerTest("reduceRight", function(){
                 return t.isEqual(array.reduceRight([1,2,3,4], function(a, b){ return a + b; }), 10);
             });
-        });
 
-        require(["./test", "uber/function", "uber/object"], function(t, func, object){
-            var obj1 = {
-                prop: "foo"
-            };
-            var obj2 = {
-                prop: "bar",
-                method: function(arg){
-                    return arg ? (arg + " " + (this.prop||"none")) : this.prop;
-                },
-                toString: function(){
-                    return "obj2";
-                }
-            };
-            t.registerTest("bind", function(){
-                var b1 = func.bind(obj2.method, obj1);
-                var b2 = func.bind(obj2.method, obj2, "foo");
-                return b1() == "foo" && b2() == "foo bar";
-            });
-            t.registerTest("curry", function(){
-                var c1 = func.curry(obj2.method, "foo");
-                return c1() == "foo none" && c1.call(obj1) == "foo foo";
-            });
+            (function(){
+                var obj1 = {
+                    prop: "foo"
+                };
+                var obj2 = {
+                    prop: "bar",
+                    method: function(arg){
+                        return arg ? (arg + " " + (this.prop||"none")) : this.prop;
+                    },
+                    toString: function(){
+                        return "obj2";
+                    }
+                };
+                t.registerTest("bind", function(){
+                    var b1 = func.bind(obj2.method, obj1);
+                    var b2 = func.bind(obj2.method, obj2, "foo");
+                    return b1() == "foo" && b2() == "foo bar";
+                });
+                t.registerTest("curry", function(){
+                    var c1 = func.curry(obj2.method, "foo");
+                    return c1() == "foo none" && c1.call(obj1) == "foo foo";
+                });
 
-            t.registerTest("forIn", function(){
-                // forIn should not skip toString (IE) and shouldn't double each key (Saf2)
-                var count = 0;
-                object.forIn(obj2, function(){ count++; });
+                t.registerTest("forIn", function(){
+                    // forIn should not skip toString (IE) and shouldn't double each key (Saf2)
+                    var count = 0;
+                    object.forIn(obj2, function(){ count++; });
 
-                return count == 3;
-            });
+                    return count == 3;
+                });
 
-            t.registerTest("keys", function(){
-                return object.keys(obj2).length == 3;
-            });
+                t.registerTest("keys", function(){
+                    return object.keys(obj2).length == 3;
+                });
 
-            var obj3 = object.create(obj2, {
-                prop1: "baz"
-            });
-            t.registerTest("hasKey", function(){
-                return object.hasKey(obj3, "prop1") && !object.hasKey(obj3, "method");
-            });
+                var obj3 = object.create(obj2, {
+                    prop1: "baz"
+                });
+                t.registerTest("hasKey", function(){
+                    return object.hasKey(obj3, "prop1") && !object.hasKey(obj3, "method");
+                });
 
-            t.registerTest("create", function(){
-                var result = obj3.prop1 == "baz" && ("prop" in obj3) && obj3.prop == "bar";
-                obj2.prop = "blah";
-                return result && obj3.prop == "blah";
-            });
+                t.registerTest("create", function(){
+                    var result = obj3.prop1 == "baz" && ("prop" in obj3) && obj3.prop == "bar";
+                    obj2.prop = "blah";
+                    return result && obj3.prop == "blah";
+                });
 
-            t.registerTest("isArray", function(){
-                return object.isArray([]);
-            });
-            t.registerTest("isFunction", function(){
-                return object.isFunction(function(){});
-            });
-            t.registerTest("isString", function(){
-                return object.isString("");
-            });
-            t.registerTest("isNumber", function(){
-                return object.isNumber(1000) && !object.isNumber(Infinity);
-            });
-            t.registerTest("isRegExp", function(){
-                return object.isRegExp(/^$/);
-            });
-        });
+                t.registerTest("isArray", function(){
+                    return object.isArray([]);
+                });
+                t.registerTest("isFunction", function(){
+                    return object.isFunction(function(){});
+                });
+                t.registerTest("isString", function(){
+                    return object.isString("");
+                });
+                t.registerTest("isNumber", function(){
+                    return object.isNumber(1000) && !object.isNumber(Infinity);
+                });
+                t.registerTest("isRegExp", function(){
+                    return object.isRegExp(/^$/);
+                });
+            })();
 
-        require(["./test", "uber/string"], function(t, string){
             t.registerTest("trim", function(){
                 return string.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029") == 'asdf' &&
                     string.trim("\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007asdf\uFEFFasdf\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF") == 'asdf\uFEFFasdf';
             });
-        });
 
-        require(["./test", "uber/when", "uber/Deferred"], function(t, when, Deferred){
             t.registerTest("when/deferred", function(){
                 var d = new Deferred,
                     whenResult,
@@ -236,110 +235,108 @@
                     return !!err_result && !result;
                 }
             ]);
-        });
 
-        require(["./test", "uber/aop"], function(t, aop){
-            var tests;
             (function(){
-                var originalCalled, bCalled, cCalled, dCalled, eCalled,
-                    obj, originalFoo, a, b, c, d;
-                originalCalled = bCalled = cCalled = dCalled = eCalled = false;
+                var tests;
+                (function(){
+                    var originalCalled, bCalled, cCalled, dCalled, eCalled,
+                        obj, originalFoo, a, b, c, d;
+                    originalCalled = bCalled = cCalled = dCalled = eCalled = false;
 
-                obj = { foo: function(){ originalCalled = true; return 2; } };
-                originalFoo = obj.foo;
+                    obj = { foo: function(){ originalCalled = true; return 2; } };
+                    originalFoo = obj.foo;
 
-                a = aop.before(obj, "foo", function(){ aCalled = true; return 0; });
-                b = aop.before(obj, "foo", function(){ bCalled = true; return 1; });
-                c = aop.after(obj, "foo", function(){ cCalled = true; return 3; });
-                d = aop.after(obj, "foo", function(){ dCalled = true; return 4; });
+                    a = aop.before(obj, "foo", function(){ aCalled = true; return 0; });
+                    b = aop.before(obj, "foo", function(){ bCalled = true; return 1; });
+                    c = aop.after(obj, "foo", function(){ cCalled = true; return 3; });
+                    d = aop.after(obj, "foo", function(){ dCalled = true; return 4; });
 
-                tests = [
+                    tests = [
+                        function(){
+                            var res = obj.foo();
+                            return res == 2 && aCalled && bCalled && originalCalled && cCalled && dCalled;
+                        },
+                        function(){
+                            aCalled = bCalled = originalCalled = cCalled = dCalled = false;
+                            a.pause();
+                            c.pause();
+                            obj.foo();
+                            return !aCalled && bCalled && !cCalled && dCalled && originalCalled;
+                        },
+                        function(){
+                            aCalled = bCalled = originalCalled = cCalled = dCalled = false;
+                            a.resume();
+                            c.resume();
+                            obj.foo();
+                            return aCalled && bCalled && cCalled && dCalled && originalCalled;
+                        },
+                        function(){
+                            aCalled = bCalled = originalCalled = cCalled = dCalled = false;
+                            a.stop();
+                            c.stop();
+                            a.resume();
+                            c.resume();
+                            obj.foo();
+                            return !aCalled && bCalled && !cCalled && dCalled && originalCalled;
+                        }
+                    ];
+                })();
+
+                (function(){
+                    // test the order of methods executed
+                    var obj, originalCalled, bCalled, cCalled, dCalled, eCalled;
+
+                    originalCalled = bCalled = cCalled = dCalled = eCalled = false;
+
+                    obj = { foo: function(){ originalCalled = aCalled && bCalled && !cCalled && !dCalled; } };
+
+                    aop.before(obj, "foo", function(){ bCalled = aCalled && !originalCalled && !cCalled && !dCalled; });
+                    aop.before(obj, "foo", function(){ aCalled = !bCalled && !originalCalled && !cCalled && !dCalled; });
+                    aop.after(obj, "foo", function(){ cCalled = aCalled && bCalled && originalCalled && !dCalled; });
+                    aop.after(obj, "foo", function(){ dCalled = aCalled && bCalled && originalCalled && cCalled; });
+
+                    tests.push(function(){
+                        obj.foo();
+                        return aCalled && bCalled && originalCalled && cCalled && dCalled;
+                    });
+                })();
+
+                t.registerTests("aop", tests);
+            })();
+
+            (function(){
+                var aCalled, bCalled, cCalled, dCalled;
+                var a = pubsub.subscribe("some:foo", function(args){ aCalled = true; });
+                var b = pubsub.subscribe("some:foo", function(args){ bCalled = true; });
+                var c = pubsub.subscribe("some:foo", function(args){ cCalled = true; });
+                var d = pubsub.subscribe("some:other:foo", function(args){ dCalled = true; });
+
+                t.registerTests("pubsub", [
                     function(){
-                        var res = obj.foo();
-                        return res == 2 && aCalled && bCalled && originalCalled && cCalled && dCalled;
+                        aCalled = bCalled = cCalled = dCalled = false;
+                        pubsub.publish("some:foo");
+                        return aCalled && bCalled && cCalled && !dCalled;
                     },
                     function(){
-                        aCalled = bCalled = originalCalled = cCalled = dCalled = false;
-                        a.pause();
-                        c.pause();
-                        obj.foo();
-                        return !aCalled && bCalled && !cCalled && dCalled && originalCalled;
+                        aCalled = bCalled = cCalled = dCalled = false;
+                        b.pause();
+                        pubsub.publish("some:foo");
+                        return aCalled && !bCalled && cCalled && !dCalled;
                     },
                     function(){
-                        aCalled = bCalled = originalCalled = cCalled = dCalled = false;
-                        a.resume();
-                        c.resume();
-                        obj.foo();
-                        return aCalled && bCalled && cCalled && dCalled && originalCalled;
+                        aCalled = bCalled = cCalled = dCalled = false;
+                        pubsub.publish("some:other:foo");
+                        return !aCalled && !bCalled && !cCalled && dCalled;
                     },
                     function(){
-                        aCalled = bCalled = originalCalled = cCalled = dCalled = false;
-                        a.stop();
-                        c.stop();
-                        a.resume();
-                        c.resume();
-                        obj.foo();
-                        return !aCalled && bCalled && !cCalled && dCalled && originalCalled;
+                        aCalled = bCalled = cCalled = dCalled = false;
+                        b.resume();
+                        pubsub.publish("some:foo");
+                        return aCalled && bCalled && cCalled && !dCalled;
                     }
-                ];
+                ]);
             })();
 
-            (function(){
-                // test the order of methods executed
-                var obj, originalCalled, bCalled, cCalled, dCalled, eCalled;
-
-                originalCalled = bCalled = cCalled = dCalled = eCalled = false;
-
-                obj = { foo: function(){ originalCalled = aCalled && bCalled && !cCalled && !dCalled; } };
-
-                aop.before(obj, "foo", function(){ bCalled = aCalled && !originalCalled && !cCalled && !dCalled; });
-                aop.before(obj, "foo", function(){ aCalled = !bCalled && !originalCalled && !cCalled && !dCalled; });
-                aop.after(obj, "foo", function(){ cCalled = aCalled && bCalled && originalCalled && !dCalled; });
-                aop.after(obj, "foo", function(){ dCalled = aCalled && bCalled && originalCalled && cCalled; });
-
-                tests.push(function(){
-                    obj.foo();
-                    return aCalled && bCalled && originalCalled && cCalled && dCalled;
-                });
-            })();
-
-            t.registerTests("aop", tests);
-        });
-
-        require(["./test", "uber/pubsub"], function(t, pubsub){
-            var aCalled, bCalled, cCalled, dCalled;
-            var a = pubsub.subscribe("some:foo", function(args){ aCalled = true; });
-            var b = pubsub.subscribe("some:foo", function(args){ bCalled = true; });
-            var c = pubsub.subscribe("some:foo", function(args){ cCalled = true; });
-            var d = pubsub.subscribe("some:other:foo", function(args){ dCalled = true; });
-
-            t.registerTests("pubsub", [
-                function(){
-                    aCalled = bCalled = cCalled = dCalled = false;
-                    pubsub.publish("some:foo");
-                    return aCalled && bCalled && cCalled && !dCalled;
-                },
-                function(){
-                    aCalled = bCalled = cCalled = dCalled = false;
-                    b.pause();
-                    pubsub.publish("some:foo");
-                    return aCalled && !bCalled && cCalled && !dCalled;
-                },
-                function(){
-                    aCalled = bCalled = cCalled = dCalled = false;
-                    pubsub.publish("some:other:foo");
-                    return !aCalled && !bCalled && !cCalled && dCalled;
-                },
-                function(){
-                    aCalled = bCalled = cCalled = dCalled = false;
-                    b.resume();
-                    pubsub.publish("some:foo");
-                    return aCalled && bCalled && cCalled && !dCalled;
-                }
-            ]);
-        });
-
-        require(["./test", "uber/Deferred", "uber/xhr"], function(t, Deferred, xhr){
             t.registerTests("xhr", [
                 function(){
                     return xhr("GET", { url: "test.js" }).then(function(res){
@@ -371,6 +368,10 @@
                     return def;
                 }
             ]);
+
+            require.ready(function(){
+                t.runTests();
+            });
         });
     </script>
 </head>
