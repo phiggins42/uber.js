@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <title>Listen test</title>
 
-    <script src="../third-party/requirejs/require.js"></script>
     <script src="config.js"></script>
+    <script src="../third-party/requirejs/require.js"></script>
 </head>
 <body>
     <button id="clickMe">Click me!</button>
@@ -14,36 +14,41 @@
     <br/>
     <textarea id="output" style="width: 400px; height: 100px;"></textarea>
     <script>
-        require(["uber/dom", "uber/dom-event"], function(dom, event){
+        require(["uber/dom", "uber/listen"], function(dom, listen){
             var clickHandle1 = null,
                 clickHandle2 = null;
             var cm = dom.byId("clickMe");
-            clickHandle1 = event.listen(cm, "onclick", function(){
+            clickHandle1 = listen(cm, "click", function(){
                 var o = dom.byId("output");
                 o.innerHTML += "handler 1\n";
                 o.scrollTop = o.scrollHeight;
             });
-            clickHandle2 = event.listen(cm, "onclick", function(){
+            clickHandle2 = listen(cm, "click", function(){
                 var o = dom.byId("output");
                 o.innerHTML += "handler 2\n";
                 o.scrollTop = o.scrollHeight;
             });
 
-            event.listen(dom.byId("pauseOne"), "onclick", function(){
-                if(clickHandle1.paused()){
+            var onePaused = false;
+            listen(dom.byId("pauseOne"), "click", function(){
+                if(onePaused){
                     clickHandle1.resume();
                 }else{
                     clickHandle1.pause();
                 }
-                dom.byId("pauseOne").innerHTML = clickHandle1.paused() ? "Resume One" : "Pause One";
+                onePaused = !onePaused;
+                dom.byId("pauseOne").innerHTML = onePaused ? "Resume One" : "Pause One";
             });
-            event.listen(dom.byId("pauseTwo"), "onclick", function(){
-                if(clickHandle2.paused()){
+
+            var twoPaused = false;
+            listen(dom.byId("pauseTwo"), "click", function(){
+                if(twoPaused){
                     clickHandle2.resume();
                 }else{
                     clickHandle2.pause();
                 }
-                dom.byId("pauseTwo").innerHTML = clickHandle2.paused() ? "Resume Two" : "Pause Two";
+                twoPaused = !twoPaused;
+                dom.byId("pauseTwo").innerHTML = twoPaused ? "Resume Two" : "Pause Two";
             });
         });
     </script>

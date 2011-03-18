@@ -11,7 +11,7 @@
     <!-- Adapted from https://gist.github.com/43245cbb7db4eab2ad8c -->
     <div id="container"></div>
     <script>
-        require(["uber/dom-event"], function(event){
+        require(["uber/listen"], function(listen){
             var i =-1, l = 1000, container = document.getElementById("container");
             while (++i < l){
                 var e = document.createElement("div");
@@ -19,7 +19,7 @@
                     function LeakFunc(){
                         elem.innerHTML = "foo";
                     }
-                    event.listen(elem, "onclick", LeakFunc);
+                    listen(elem, "onclick", LeakFunc);
                     container.appendChild(elem);
                 })(e);
             }
