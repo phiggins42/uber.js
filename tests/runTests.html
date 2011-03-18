@@ -272,8 +272,8 @@
                         },
                         function(){
                             aCalled = bCalled = originalCalled = cCalled = dCalled = false;
-                            a.stop();
-                            c.stop();
+                            a.cancel();
+                            c.cancel();
                             a.resume();
                             c.resume();
                             obj.foo();
