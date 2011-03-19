@@ -4,53 +4,124 @@
     <meta charset="utf-8">
     <title>Listen test</title>
 
+    <style>
+        .error {
+            color: red;
+        }
+    </style>
+
     <script src="config.js"></script>
     <script src="../third-party/requirejs/require.js"></script>
+    <script>
+        (function(global){
+            require(["./test", "./test-event", "uber/dom-ready", "uber/dom", "uber/listen", "uber/dom-event"],
+            function(t, tev, ready, dom, listen, event){
+                var clickHandle1 = null,
+                    clickHandle2 = null,
+                    cm, output;
+
+                ready.then(function(){
+                    cm = dom.byId("clickMe");
+                    output = dom.byId("text_output");
+                    clickHandle1 = listen(cm, "click", function(){
+                        output.innerHTML += "handler 1\n";
+                        output.scrollTop = output.scrollHeight;
+                    });
+                    clickHandle2 = listen(cm, "click", function(){
+                        output.innerHTML += "handler 2\n";
+                        output.scrollTop = output.scrollHeight;
+                    });
+
+                    var onePaused = false;
+                    listen(dom.byId("pauseOne"), "click", function(){
+                        if(onePaused){
+                            clickHandle1.resume();
+                        }else{
+                            clickHandle1.pause();
+                        }
+                        onePaused = !onePaused;
+                        dom.byId("pauseOne").innerHTML = onePaused ? "Resume One" : "Pause One";
+                    });
+
+                    var twoPaused = false;
+                    listen(dom.byId("pauseTwo"), "click", function(){
+                        if(twoPaused){
+                            clickHandle2.resume();
+                        }else{
+                            clickHandle2.pause();
+                        }
+                        twoPaused = !twoPaused;
+                        dom.byId("pauseTwo").innerHTML = twoPaused ? "Resume Two" : "Pause Two";
+                    });
+                });
+
+                var input, container, link, a, b, aCalled, bCalled;
+                t.registerTests("listen", [
+                    function(){
+                        container = dom.byId("container");
+                        a = listen(cm, "click", function(evt){
+                            aCalled = this === cm && event.getEventTarget(evt) === cm;
+                        });
+                        b = listen(container, "click", function(evt){
+                            bCalled = this === container && event.getEventTarget(evt) === cm;
+                        });
+                        aCalled = bCalled = false;
+
+                        tev.click(cm);
+                        return aCalled && bCalled;
+                    },
+                    function(){
+                        a.pause();
+                        aCalled = bCalled = false;
+
+                        tev.click(cm);
+                        return !aCalled && bCalled;
+                    }
+                ]);
+                t.registerTest("stopPropagation", function(){
+                    a.resume();
+
+                    listen(cm, "click", function(evt){
+                        event.stopPropagation(evt);
+                    });
+                    aCalled = bCalled = false;
+
+                    tev.click(cm);
+                    return aCalled && !bCalled;
+                });
+                t.registerTest("preventDefault", function(){
+                    var link = dom.byId("link");
+                    listen(link, "click", function(evt){
+                        event.preventDefault(evt);
+                    });
+
+                    tev.click(link);
+                    return global.location.hash != "#foo";
+                });
+                /*t.registerTest("destroyElement", function(){
+                    listen(input, "click", function(){});
+                    dom.destroyElement(container);
+                    if(typeof __cache__ != "undefined"){
+                        return !__cache__[dom.getNodeId(input)] && !__cache__[dom.getNodeId(link)];
+                    }else{
+                        return true;
+                    }
+                });*/
+
+                t.runTests();
+            });
+        })(this);
+    </script>
 </head>
 <body>
-    <button id="clickMe">Click me!</button>
+    <div id="container">
+        <button id="clickMe">Click me!</button>
+    </div>
     <button id="pauseOne">Pause One</button>
     <button id="pauseTwo">Pause Two</button>
+    <a id="link" href="#foo">A link</a>
     <br/>
-    <textarea id="output" style="width: 400px; height: 100px;"></textarea>
-    <script>
-        require(["uber/dom", "uber/listen"], function(dom, listen){
-            var clickHandle1 = null,
-                clickHandle2 = null;
-            var cm = dom.byId("clickMe");
-            clickHandle1 = listen(cm, "click", function(){
-                var o = dom.byId("output");
-                o.innerHTML += "handler 1\n";
-                o.scrollTop = o.scrollHeight;
-            });
-            clickHandle2 = listen(cm, "click", function(){
-                var o = dom.byId("output");
-                o.innerHTML += "handler 2\n";
-                o.scrollTop = o.scrollHeight;
-            });
-
-            var onePaused = false;
-            listen(dom.byId("pauseOne"), "click", function(){
-                if(onePaused){
-                    clickHandle1.resume();
-                }else{
-                    clickHandle1.pause();
-                }
-                onePaused = !onePaused;
-                dom.byId("pauseOne").innerHTML = onePaused ? "Resume One" : "Pause One";
-            });
-
-            var twoPaused = false;
-            listen(dom.byId("pauseTwo"), "click", function(){
-                if(twoPaused){
-                    clickHandle2.resume();
-                }else{
-                    clickHandle2.pause();
-                }
-                twoPaused = !twoPaused;
-                dom.byId("pauseTwo").innerHTML = twoPaused ? "Resume Two" : "Pause Two";
-            });
-        });
-    </script>
+    <textarea id="text_output" style="width: 400px; height: 100px;"></textarea>
+    <ul id="output"></ul>
 </body>
 </html>
