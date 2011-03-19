@@ -49,12 +49,12 @@
         }
     </style>
 
-    <script src="../third-party/requirejs/require.js"></script>
     <script src="config.js"></script>
+    <script src="../third-party/requirejs/require.js"></script>
     <script>
         (function(global){
-            require(["./test", "uber/dom", "uber/dom-event", "uber/html", "uber/array", "uber/object", "has/css", "has/bugs"],
-            function(t, dom, event, html, array, object, has){
+            require(["./test", "uber/dom", "uber/html", "uber/array", "uber/object", "has/css", "has/bugs"],
+            function(t, dom, html, array, object, has){
                 window.location.hash = "";
                 t.registerTest("toArray NodeList", function(){
                     var te = dom.byId("testelement");
@@ -117,64 +117,8 @@
                         }
                     ]);
                 })();
-                (function(){
-                    var input, container, link, a, b, c, aCalled, bCalled, cCalled;
-                    t.registerTests("listen", [
-                        function(){
-                            input = dom.byId("test_input");
-                            container = dom.byId("hiddenContainer");
-                            a = event.listen(input, "onclick", function(evt){
-                                aCalled = this === input && event.getEventTarget(evt) === input;
-                            });
-                            b = event.listen(input, "onclick", function(evt){
-                                event.stopPropagation(evt);
-                                bCalled = this === input && event.getEventTarget(evt) === input;
-                            });
-                            c = event.listen(container, "onclick", function(evt){
-                                cCalled = this === container && event.getEventTarget(evt) === input;
-                            });
-                            b.pause();
-                            aCalled = bCalled = cCalled = false;
-                            event.fireEvent(input, "click");
-                            return aCalled && !bCalled && cCalled;
-                        },
-                        function(){
-                            a.pause();
-                            aCalled = bCalled = cCalled = false;
-                            event.fireEvent(input, "click");
-                            return !aCalled && !bCalled && cCalled;
-                        },
-                        function(){
-                            a.resume();
-                            b.resume();
-                            aCalled = bCalled = cCalled = false;
-                            event.fireEvent(input, "click");
-                            return aCalled && bCalled && !cCalled;
-                        }
-                    ]);
-                    t.registerTest("cancelAll", function(){
-                        event.cancelAll(input, "onclick");
-                        return !_uberEventData[dom.getNodeId(input)].events[event.normalizeEventName("onclick")];
-                    });
-                    t.registerTest("preventDefault", function(){
-                        link = dom.byId("hiddenLink");
-                        event.listen(link, "onclick", function(evt){
-                            event.preventDefault(evt);
-                        });
-                        event.fireEvent(link, "click");
 
-                        return global.location.hash != "#foo";
-                    });
-                    t.registerTest("destroyElement", function(){
-                        event.listen(input, "onclick", function(){});
-                        dom.destroyElement(container);
-                        return !_uberEventData[dom.getNodeId(input)] && !_uberEventData[dom.getNodeId(link)];
-                    });
-                })();
-
-                require.ready(function(){
-                    t.runTests();
-                });
+                t.runTests();
             });
         })(this);
     </script>

@@ -1,5 +1,5 @@
 (function(global, document){
-    define(["uber/when", "uber/Deferred", "uber/dom"], function(when, Deferred, dom){
+    define(["uber/when", "uber/Deferred", "uber/dom", "uber/dom-ready"], function(when, Deferred, dom, ready){
         var toString = {}.toString,
             func = "[object Function]",
             arr = "[object Array]"
@@ -184,17 +184,19 @@
         }
 
         function runTests(){
-            forEach(tests, function(test, i){
-                function onDone(res){
-                    outputResult(test, res);
-                    if(nextTest){
-                        nextTest.run();
+            ready.then(function(){
+                forEach(tests, function(test, i){
+                    function onDone(res){
+                        outputResult(test, res);
+                        if(nextTest){
+                            nextTest.run();
+                        }
                     }
-                }
-                var nextTest = tests[i+1];
-                when(test, onDone, onDone);
+                    var nextTest = tests[i+1];
+                    when(test, onDone, onDone);
+                });
+                tests.length && tests[0].run();
             });
-            tests.length && tests[0].run();
         }
 
         return {

@@ -10,8 +10,8 @@
         }
     </style>
 
-    <script src="../third-party/requirejs/require.js"></script>
     <script src="config.js"></script>
+    <script src="../third-party/requirejs/require.js"></script>
     <script>
         require(["./test", "uber/dom"], function(t, dom){
             var te, container;
@@ -109,9 +109,7 @@
                 }
             ]);
 
-            require.ready(function(){
-                t.runTests();
-            });
+            t.runTests();
         });
     </script>
 </head>
