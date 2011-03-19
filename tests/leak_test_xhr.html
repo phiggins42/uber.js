@@ -1,0 +1,26 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <title>No Leak Test with XHR</title>
+
+    <script src="config.js"></script>
+    <script src="../third-party/requirejs/require.js"></script>
+</head>
+<body>
+    <!-- Adapted from https://gist.github.com/43245cbb7db4eab2ad8c -->
+    <script>
+        require(["uber/xhr"], function(xhr){
+            var i =-1, l = 1000;
+            while (++i < l){
+                (function(){
+                    function LeakFunc(res){
+                        var a = d;
+                    }
+                    var d = xhr("GET", { url: "test.js" });
+                    d.then(LeakFunc);
+                })();
+            }
+        });
+    </script>
+</body>
+</html>

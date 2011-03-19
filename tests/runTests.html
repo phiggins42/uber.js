@@ -344,10 +344,28 @@
                     });
                 },
                 function(){
+                    var fired = false;
+                    xhr("GET", { url: "test.js?foo", sync: true }).then(function(res){
+                        fired = true;
+                    });
+                    return fired;
+                },
+                function(){
+                    var def = new Deferred;
+
+                    xhr("GET", { url: "delay.php", timeout: 500 }).then(function(res){
+                        def.resolve(false);
+                    },function(err){
+                        def.resolve(err.message == "timeout");
+                    });
+
+                    return def;
+                },
+                function(){
                     var def = new Deferred;
 
                     xhr("GET", { url: "test.jss" }).then(function(res){
-                        def.reject();
+                        def.resolve(false);
                     },function(err){
                         def.resolve(true);
                     });
@@ -357,9 +375,9 @@
                 function(){
                     var def = new Deferred;
 
-                    var x = xhr("GET", { url: "test.js" });
+                    var x = xhr("GET", { url: "test.js?bar" });
                     x.then(function(res){
-                        def.reject();
+                        def.resolve(false);
                     },function(err){
                         def.resolve(true);
                     });
