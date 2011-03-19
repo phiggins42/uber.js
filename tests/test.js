@@ -94,7 +94,8 @@
         Test.prototype.run = (function(){
             function run(){
                 var st, et, ret,
-                    test = this.test;
+                    test = this.test,
+                    self = this;
 
                 if(!test){
                     this.reject("No test provided");
@@ -103,7 +104,21 @@
 
                 st = this.startTime = new Date;
                 try{
-                    ret = test.apply(this, arguments);
+                    when(
+                        test.apply(this, arguments),
+                        function(res){
+                            et = self.endTime = new Date;
+                            self.elapsed = et - st;
+
+                            self.resolve(res);
+                        },
+                        function(err){
+                            et = self.endTime = new Date;
+                            self.elapsed = et - st;
+
+                            self.reject(err);
+                        }
+                    );
                 }catch(e){
                     et = this.endTime = new Date;
                     this.elapsed = et - st;
@@ -111,10 +126,6 @@
                     this.reject(e);
                     return;
                 }
-                et = this.endTime = new Date;
-                this.elapsed = et - st;
-
-                this.resolve(ret);
             };
 
             return run;
