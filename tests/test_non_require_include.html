@@ -18,6 +18,7 @@
     <script src="../uber.js"></script>
     <script src="../lib/array.js"></script>
     <script src="../lib/aop.js"></script>
+    <script src="../lib/pubsub.js"></script>
     <script src="../lib/function.js"></script>
     <script src="../lib/object.js"></script>
     <script src="../lib/string.js"></script>
@@ -25,7 +26,10 @@
     <script src="../lib/Deferreds.js"></script>
     <script src="../lib/when.js"></script>
     <script src="../lib/dom.js"></script>
+    <script src="../lib/listen.js"></script>
     <script src="../lib/dom-event.js"></script>
+    <script src="../lib/dom-ready.js"></script>
+    <script src="../lib/html.js"></script>
     <script src="../lib/xhr.js"></script>
 </head>
 <body>
@@ -41,9 +45,10 @@
                 typeof uber_aop != undef && typeof uber_function != undef &&
                 typeof uber_object != undef && typeof uber_string != undef &&
                 typeof uber_when != undef && typeof uber_Deferred != undef &&
-                typeof uber_Deferreds != undef &&
-                typeof uber_dom != undef && typeof uber_dom_event != undef &&
-                typeof uber_xhr != undef) ? "pass" : "failed");
+                typeof uber_Deferreds != undef && typeof uber_pubsub != undef &&
+                typeof uber_dom != undef && typeof uber_listen != undef && 
+                typeof uber_dom_event != undef && typeof uber_dom_ready != undef &&
+                typeof uber_html != undef && typeof uber_xhr != undef) ? "pass" : "failed");
 
             out.appendChild(li);
         })();
