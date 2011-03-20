@@ -113,8 +113,8 @@
                 var obj3 = object.create(obj2, {
                     prop1: "baz"
                 });
-                t.registerTest("hasKey", function(){
-                    return object.hasKey(obj3, "prop1") && !object.hasKey(obj3, "method");
+                t.registerTest("hasOwnProperty", function(){
+                    return object.hasOwnProperty(obj3, "prop1") && !object.hasOwnProperty(obj3, "method");
                 });
 
                 t.registerTest("create", function(){
