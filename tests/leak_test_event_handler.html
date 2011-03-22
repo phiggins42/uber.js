@@ -11,19 +11,19 @@
     <!-- Adapted from https://gist.github.com/43245cbb7db4eab2ad8c -->
     <div id="container"></div>
     <script>
-        require(["uber/listen"], function(listen){
-            var i =-1, l = 1000, container = document.getElementById("container");
+        require(["uber/dom", "uber/listen"], function(dom, listen){
+            var i =-1, l = 1000, container = dom.byId("container");
             while (++i < l){
                 var e = document.createElement("div");
                 (function(elem){
                     function LeakFunc(){
                         elem.innerHTML = "foo";
                     }
-                    listen(elem, "onclick", LeakFunc);
+                    listen(elem, "click", LeakFunc);
                     container.appendChild(elem);
                 })(e);
             }
-            container.innerHTML = "";
+            dom.destroyElement(container);
         });
     </script>
 </body>
